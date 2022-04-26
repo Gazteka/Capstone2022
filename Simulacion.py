@@ -34,13 +34,39 @@ def cargar_recursos_sala():
             for box_atencion in range(1, recursos_sala[nombre_sala]['box_atencion']+1):
                 sala_actual.recursos['box_atencion'][box_atencion] = False
             sala_actual.recursos['ampliacion_max'] = recursos_sala[nombre_sala]['ampliacion_max']
-            print(sala_actual.recursos)
 
-        if "DIV" in nombre_sala and nombre_sala != 'DIV_101_703':
-            print(nombre_sala)
+        elif "DIV" in nombre_sala and nombre_sala != 'DIV_101_703':
+            sala_actual.recursos['camas'] = dict()
+            for cama in range(1, recursos_sala[nombre_sala]['camas']+1):
+                sala_actual.recursos['camas'][cama] = False
+            sala_actual.recursos['ampliacion_max'] = recursos_sala[nombre_sala]['ampliacion_max']
 
+        elif nombre_sala == 'OPR102_001':
+            sala_actual.recursos['quirofanos'] = dict()
+            for quirofano in range(1, recursos_sala[nombre_sala]['quirofanos']+1):
+                sala_actual.recursos['quirofanos'][quirofano] = False
+            sala_actual.recursos['hora_inicio'] = recursos_sala[nombre_sala]['hora_inicio']
+            sala_actual.recursos['hora_final'] = recursos_sala[nombre_sala]['hora_final']
+
+        elif nombre_sala == 'OPR101_011':
+            sala_actual.recursos['quirofanos'] = dict()
+            for quirofano in range(1, recursos_sala[nombre_sala]['quirofanos']+1):
+                sala_actual.recursos['quirofanos'][quirofano] = False
+            sala_actual.recursos['hora_inicio'] = recursos_sala[nombre_sala]['hora_inicio']
+            sala_actual.recursos['hora_final'] = recursos_sala[nombre_sala]['hora_final']
+            sala_actual.recursos['hora_limite'] = recursos_sala[nombre_sala]['hora_limite']
+
+        elif nombre_sala == 'OPR102_003':
+            sala_actual.recursos['hora_inicio'] =  recursos_sala[nombre_sala]['hora_inicio']
+            sala_actual.recursos['hora_final'] = recursos_sala[nombre_sala]['hora_final']
+            sala_actual.recursos['hora_limite'] = recursos_sala[nombre_sala]['hora_limite']
+        
+        elif nombre_sala == 'OPR101_033':
+            sala_actual.recursos['hora_inicio'] = recursos_sala[nombre_sala]['hora_inicio']
+            sala_actual.recursos['hora_final'] = recursos_sala[nombre_sala]['hora_final']
 
         dic_salas[nombre_sala] = sala_actual
+
     return dic_salas
 
 cargar_recursos_sala()
