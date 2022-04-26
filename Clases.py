@@ -43,18 +43,19 @@ class GeneradoraPacientes:
         total_pacientes =0
         iter = 10
         for n in range(0, iter):
+            print()
             print(f'Iteración: {n}')
             print(f'---------------')
 
             while hora_dia < (24):
-                x = np.random.lognormal(1, 0.5)
+                print(f'Hora del día: {hora_dia}')
+                x = np.random.lognormal(0.0001, 1)     # 
                 #x = -(x*location)/scale
                 llegada_paciente = hora_dia + x
                 n_pacientes += 1 
                 paciente = np.array(['ID', llegada_paciente, x])
                 hora_dia += llegada_paciente
                 
-                print(f'Hora del día: {hora_dia}')
                 print(f'Paciente {n_pacientes} \nHora de llegada: {llegada_paciente} - Tiempo entre llegadas: {x}')
 
             hora_dia = 0
