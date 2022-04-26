@@ -1,0 +1,65 @@
+{
+    "URG_101_003": {
+        "box_atencion": 3,
+        "ampliacion_max": 5
+    }, 
+
+    "DIV_101_703": {
+        "box_atencion": 5,
+        "ampliacion_max": 8
+    },
+
+    "DIV101_603": {
+        "camas": 12,
+        "ampliacion_max": 15
+    }, 
+
+    "DIV101_604": {
+        "camas": 5,
+        "ampliacion_max": 6
+    },
+
+    "DIV102_203": {
+        "camas": 12,
+        "ampliacion_max": 15
+    },
+
+    "DIV103_107": {
+        "camas": 8,
+        "ampliacion_max": 10
+    },
+
+    "DIV104_602": {
+        "camas": 14,
+        "ampliacion_max": 18
+    },
+
+    "DIV103_204": {
+        "camas": 10,
+        "ampliacion_max": 13
+    },
+
+    "OPR102_001": {
+        "quirofanos": 2,
+        "hora_inicio": 0,
+        "hora_final": 24
+    },
+
+    "OPR101_011": {
+        "quirofanos": 2,
+        "hora_inicio": 8,
+        "hora_final": 20,
+        "hora_limite": 23
+    },
+
+    "OPR102_003": {
+        "hora_inicio": 8,
+        "hora_final": 18,
+        "hora_limite": 20
+    },
+
+    "OPR101_033": {
+        "hora_inicio": 0,
+        "hora_final": 24
+    }
+}

@@ -7,6 +7,7 @@ class Sala:
     def __init__(self,nombre):
         self.nombre = nombre
         self.pacientes = []
+        self.recursos = dict()
     
     def __str__(self):
         return self.nombre

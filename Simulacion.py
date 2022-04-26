@@ -22,7 +22,28 @@ def preparar_pacientes(datos_pacientes):
         pacientes_listos[paciente] = paciente_class
     return pacientes_listos
 
+def cargar_recursos_sala():
+    direccion = os.path.join('Datos', 'recursos_salas.json')
+    dic_salas = dict()
+    with open(direccion) as file:
+        recursos_sala = json.load(file)
+    for nombre_sala in recursos_sala:
+        sala_actual = Sala(nombre_sala)
+        if nombre_sala == 'URG_101_003' or nombre_sala == 'DIV_101_703':
+            sala_actual.recursos['box_atencion'] = dict()
+            for box_atencion in range(1, recursos_sala[nombre_sala]['box_atencion']+1):
+                sala_actual.recursos['box_atencion'][box_atencion] = False
+            sala_actual.recursos['ampliacion_max'] = recursos_sala[nombre_sala]['ampliacion_max']
+            print(sala_actual.recursos)
 
+        if "DIV" in nombre_sala and nombre_sala != 'DIV_101_703':
+            print(nombre_sala)
+
+
+        dic_salas[nombre_sala] = sala_actual
+    return dic_salas
+
+cargar_recursos_sala()
 
 dataset,areas = preparar_datos(DIC_DATOS,AREAS)
 
