@@ -69,9 +69,5 @@ def preparar_datos(dic_datos,areas):
     return dataset,areas
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    print(preparar_datos(DIC_DATOS,AREAS))
-=======
     DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
     print(cargar_matriz_transicion(DIC_DATOS,AREAS))
->>>>>>> babecffa713ccd5e0e0e7b0fbb46c62aa75c0757
