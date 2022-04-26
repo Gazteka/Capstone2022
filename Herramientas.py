@@ -12,6 +12,20 @@ AREAS = ["URG101_003","DIV101_603","DIV101_604","DIV101_703","DIV102_203","DIV10
 
 DIC_DATOS  ={"pacientes" : RUTA_DATOS_PACIENTE,"operaciones": RUTA_DATOS_OPERACIONES}
 
+
+
+def cargar_matriz_transicion(dic_datos,areas):
+    df_heatmap = pd.DataFrame(index = areas,columns = areas)
+    datos_pacientes = dic_datos["pacientes"]
+    for area in areas:
+        derivacion_urgencia = datos_pacientes[datos_pacientes["Area"] == area]["Siguiente Área"]
+        transiciones = (derivacion_urgencia.value_counts()/derivacion_urgencia.shape[0])
+        df_heatmap[area] = transiciones
+    df_heatmap = df_heatmap.fillna(0)
+
+    return df_heatmap
+
+
 def preparar_datos(dic_datos,areas):
     dataset = {}
     for key in dic_datos:
@@ -55,4 +69,5 @@ def preparar_datos(dic_datos,areas):
 
 
 if __name__ == "__main__":
-    print(preparar_datos(DIC_DATOS,AREAS))
+    DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
+    print(cargar_matriz_transicion(DIC_DATOS,AREAS))
