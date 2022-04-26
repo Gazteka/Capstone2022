@@ -4,15 +4,14 @@ import os
 import random
 import datetime 
 
-
 CARPETA = "Datos"
 RUTA_DATOS_PACIENTE = os.path.join(CARPETA,"Datos.csv")
 RUTA_DATOS_OPERACIONES = os.path.join(CARPETA,"Datos operaciones origen urgencias.csv")
 AREAS = ["URG101_003","DIV101_603","DIV101_604","DIV101_703","DIV102_203","DIV103_107","DIV103_204",
 "DIV104_602","OPR101_011","OPR101_033","OPR102_001","OPR102_003","End"]
 
-
 DIC_DATOS  ={"pacientes" : RUTA_DATOS_PACIENTE,"operaciones": RUTA_DATOS_OPERACIONES}
+
 
 
 def cargar_matriz_transicion(dic_datos,areas):
@@ -25,6 +24,7 @@ def cargar_matriz_transicion(dic_datos,areas):
     df_heatmap = df_heatmap.fillna(0)
 
     return df_heatmap
+
 
 def preparar_datos(dic_datos,areas):
     dataset = {}
@@ -66,10 +66,6 @@ def preparar_datos(dic_datos,areas):
     
     areas.append("Outside")
     return dataset,areas
-
-
-
-
 
 
 if __name__ == "__main__":
