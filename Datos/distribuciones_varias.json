@@ -1,11 +1,11 @@
 {
-    "Llegadas_diarias": {
+    "llegadas_diarias": {
         "norm": {
             "loc": 13.85121107266436,
             "scale": 5.176449000442251
         }
     },
-    "Operaciones_general": {
+    "operaciones_general": {
         "beta": {
             "a": 1265.4156320068273,
             "b": 74.00387217861415,
@@ -13,7 +13,7 @@
             "scale": 86.75151955057292
         }
     },
-    "Tiempo_entre_llegadas": {
+    "tiempo_entre_llegadas": {
         "lognorm": {
             "loc": -0.1631080499945431,
             "s": 1.1325392177517544,
