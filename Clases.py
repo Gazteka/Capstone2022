@@ -16,7 +16,6 @@ class GeneradoraPacientes:
     '''
     Esta clase genera una lista de instancias de la clase pacientes con sus atributos respectivos 
     '''
-    
     def __init__(self, seed=18):
         self.seed = seed
         #self.distribución = None
@@ -24,15 +23,17 @@ class GeneradoraPacientes:
         self.ids = []
 
     def cargar_distribucion(self, prob, nombre_archivo):
-        direccion = os.path.join('Datos',nombre_archivo) 
+       
+        direccion = os.path.join('Datos', nombre_archivo) 
         with open(direccion) as file:
             data = json.load(file)
 
         if prob == 'llegadas':
             self.distribucion = dict(data['tiempo_entre_llegadas']['lognorm'])
-        elif prob == 'salas':
-            self.distribucion = dict(data)
         elif prob == 'estadias':
+            self.distribucion = dict(data) 
+
+        elif prob == 'transiciones':
             pass
         else:
             raise Exception('Hubo un problema con el cargo de datos de las distribuciones')  
@@ -41,15 +42,42 @@ class GeneradoraPacientes:
 
     def generar_ruta(self):
         ruta = []
-        datos_distribuciones = self.cargar_distribucion(prob='salas', nombre_archivo='distribuciones.json')
+        #distribuciones_estadias = self.cargar_distribucion(prob='transiciones', nombre_archivo='.json') #CAMBIAR NOMBRE ARCHIVO
 
         ruta.append('URG101_003')
         ruta.append('DIV101_703')
     
         return ruta
 
-    def asignar_estadias(self):
-        pass
+    def asignar_estadias(self, ruta):
+        estadias = []
+        distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones.json')
+        salas = distribuciones_estadias.keys()
+        for parada in ruta:
+            for sala in salas:
+                if parada == sala:
+                    distribucion = list(distribuciones_estadias[sala].keys())[0]
+                    if distribucion == 'beta':
+                        param_a = distribuciones_estadias[sala]['beta']['a']
+                        param_b = distribuciones_estadias[sala]['beta']['b']
+                        location = distribuciones_estadias[sala]['beta']['loc']
+                        scale = distribuciones_estadias[sala]['beta']['scale']
+                        
+                        estadia = (np.random.beta(a=param_a, b=param_b) - location) / scale 
+
+                    elif distribucion == 'lognorm':
+                        shape = distribuciones_estadias[sala]['lognorm']['s']
+                        location = distribuciones_estadias[sala]['lognorm']['loc']
+                        scale = distribuciones_estadias[sala]['lognorm']['scale']
+                        
+                        estadia = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+
+                    else:
+                        raise Exception('Distribución no identificada para las estadias')
+                    
+                    estadias.append(estadia)
+
+        return estadias
 
     def generar_id(self):
         if not self.ids: id = 1
@@ -70,13 +98,13 @@ class GeneradoraPacientes:
         n_pacientes = 0
 
         while hora_dia < horas:
-            tiempo_entre_llegadas = np.random.lognormal(mean=math.log(scale), sigma=shape)   # REVISAR PARAMETROS   
+            tiempo_entre_llegadas = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale  # REVISAR PARAMETROS   
             llegada_paciente = hora_dia + tiempo_entre_llegadas
             n_pacientes += 1 
             
             id_paciente = self.generar_id()
             ruta_paciente = self.generar_ruta()
-            estadias_paciente = self.asignar_estadias()
+            estadias_paciente = self.asignar_estadias(ruta_paciente)
             
             paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=llegada_paciente, estadias=estadias_paciente)
             self.pacientes.append(paciente)
@@ -85,10 +113,10 @@ class GeneradoraPacientes:
             hora_print, minuto_print = int(paciente.hora_llegada), int((paciente.hora_llegada-int(paciente.hora_llegada))*60)
             print(colored(f'Paciente ID: {paciente.id}','blue')) 
             print(f'Hora de llegada: {hora_print}:{minuto_print} - Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
-            print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'), '\n')
+            print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
+            print(colored(f'Estadías Paciente: {paciente.estadias}', 'yellow'), '\n')
         
         return np.array(self.pacientes)
-
 
 
 class Sala:
@@ -140,7 +168,6 @@ class Paciente:
     
     def __repr__(self):
         return str(self.id)
-
 
 class Hospital:
 
@@ -194,4 +221,5 @@ class Hospital:
 
 if __name__ == "__main__":
   generadora = GeneradoraPacientes()
+  ruta = ['URG101_003', 'DIV101_703', 'DIV101_603','OPR102_001', 'OPR102_003', 'DIV101_603', 'END']
   pacientes = generadora.generar_pacientes(horas=48)
