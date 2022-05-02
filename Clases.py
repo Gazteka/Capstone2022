@@ -1,7 +1,8 @@
 from distutils.log import error
 from functools import total_ordering
 from Herramientas import *
-
+from collections import Counter
+import random
 import numpy as np
 import json
 import os
@@ -40,14 +41,41 @@ class GeneradoraPacientes:
         
         return self.distribucion
 
-    def generar_ruta(self):
-        ruta = []
-        #distribuciones_estadias = self.cargar_distribucion(prob='transiciones', nombre_archivo='.json') #CAMBIAR NOMBRE ARCHIVO
+    def generar_ruta(self, cantidad_tipo_pacientes):
+        '''
+        Genera muuuchas rutas aleatorias, para luego ordenarlas según su repetición.
+        Retorna una lista de tuplas de la forma ([ruta], prob_relativa)
+        El n° de TIPO de pacientes determina el largo de esta lista.
+        Esta elección de rutas recurrentes determina la prob_relativa de escoger alguna en particular
+        '''
 
-        ruta.append('URG101_003')
-        ruta.append('DIV101_703')
-    
-        return ruta
+        # Genera lista de "rutas" aleatorias --> algunas "rutas" se repetirán porque son concurridas
+        muchas_rutas_aleatorias = [random.randint(0, 12) for x in range(1000)] # MODIFICAR POR LA DISTRIBUCIONES
+
+        # Crea un diccionario {ruta1: n° de repeticiones, ruta2: n° de repeticiones, ...}
+        contar_repeticiones = dict(Counter(muchas_rutas_aleatorias))
+
+        # Ordena el diccionario. Las rutas con mayor repetición estarán al comienzo.
+        # Esta nueva variable es una lista de tuplas --> [(ruta+repetida, n°rep), (2da ruta+repetida, n°rep), ...]
+        contar_repeticiones_ordenado = sorted(contar_repeticiones.items(), key = lambda x: x[1], reverse=True)
+
+        # Se corta la lista anterior según la cantidad de tipos de pacientes que definimos
+        contar_repeticiones_ordenado = contar_repeticiones_ordenado[:cantidad_tipo_pacientes]
+
+        suma_repeticiones = 0
+        for ruta, repeticion in contar_repeticiones_ordenado:
+            suma_repeticiones += repeticion
+
+        rutas_prob_relativas = list()
+        for ruta, repeticion in contar_repeticiones_ordenado:
+            prob_relativa = repeticion / suma_repeticiones
+            ruta_prob_relativa = (ruta, prob_relativa)
+
+            rutas_prob_relativas.append(ruta_prob_relativa)
+
+        # print(contar_repeticiones_ordenado)
+        # print(rutas_prob_relativas)
+        return rutas_prob_relativas
 
     def asignar_estadias(self, ruta):
         estadias = []
@@ -222,4 +250,5 @@ class Hospital:
 if __name__ == "__main__":
   generadora = GeneradoraPacientes()
   ruta = ['URG101_003', 'DIV101_703', 'DIV101_603','OPR102_001', 'OPR102_003', 'DIV101_603', 'END']
-  pacientes = generadora.generar_pacientes(horas=48)
+  #pacientes = generadora.generar_pacientes(horas=48)
+  generadora.generar_ruta(cantidad_tipo_pacientes=5)
