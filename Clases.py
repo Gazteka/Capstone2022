@@ -17,11 +17,12 @@ class GeneradoraPacientes:
     '''
     Esta clase genera una lista de instancias de la clase pacientes con sus atributos respectivos 
     '''
-    def __init__(self, seed=18):
+    def __init__(self, tipos_pacientes, seed=18):
         self.seed = seed
         #self.distribución = None
         self.pacientes = []
         self.ids = []
+        self.tipos_pacientes = tipos_pacientes # Cantidad de tipos de pacientes. Cada uno tiene una ruta en particular
 
     def cargar_distribucion(self, prob, nombre_archivo):
        
@@ -41,40 +42,26 @@ class GeneradoraPacientes:
         
         return self.distribucion
 
-    def generar_ruta(self, cantidad_tipo_pacientes):
+    def generar_ruta(self, repeticiones_totales):
         '''
-        Genera muuuchas rutas aleatorias, para luego ordenarlas según su repetición.
-        Retorna una lista de tuplas de la forma ([ruta], prob_relativa)
-        El n° de TIPO de pacientes determina el largo de esta lista.
-        Esta elección de rutas recurrentes determina la prob_relativa de escoger alguna en particular
+        Retorna una lista de tuplas de la forma [([ruta], prob_relativa), ...]
+        El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde a cuántos tipos de pacientes hay
         '''
-
-        # Genera lista de "rutas" aleatorias --> algunas "rutas" se repetirán porque son concurridas
-        muchas_rutas_aleatorias = [random.randint(0, 12) for x in range(1000)] # MODIFICAR POR LA DISTRIBUCIONES
-
-        # Crea un diccionario {ruta1: n° de repeticiones, ruta2: n° de repeticiones, ...}
-        contar_repeticiones = dict(Counter(muchas_rutas_aleatorias))
-
-        # Ordena el diccionario. Las rutas con mayor repetición estarán al comienzo.
-        # Esta nueva variable es una lista de tuplas --> [(ruta+repetida, n°rep), (2da ruta+repetida, n°rep), ...]
-        contar_repeticiones_ordenado = sorted(contar_repeticiones.items(), key = lambda x: x[1], reverse=True)
-
+        rutas_concurridas_ordenadas = encontrar_rutas_probables('heatmap.json', repeticiones_totales)
         # Se corta la lista anterior según la cantidad de tipos de pacientes que definimos
-        contar_repeticiones_ordenado = contar_repeticiones_ordenado[:cantidad_tipo_pacientes]
+        rutas_tipo_pacientes = rutas_concurridas_ordenadas[:self.tipos_pacientes]
 
         suma_repeticiones = 0
-        for ruta, repeticion in contar_repeticiones_ordenado:
+        for ruta, repeticion in rutas_tipo_pacientes:
             suma_repeticiones += repeticion
 
         rutas_prob_relativas = list()
-        for ruta, repeticion in contar_repeticiones_ordenado:
+        for ruta, repeticion in rutas_tipo_pacientes:
+
             prob_relativa = repeticion / suma_repeticiones
             ruta_prob_relativa = (ruta, prob_relativa)
-
             rutas_prob_relativas.append(ruta_prob_relativa)
 
-        # print(contar_repeticiones_ordenado)
-        # print(rutas_prob_relativas)
         return rutas_prob_relativas
 
     def asignar_estadias(self, ruta):
@@ -248,7 +235,14 @@ class Hospital:
         return 0
 
 if __name__ == "__main__":
-  generadora = GeneradoraPacientes()
+  generadora = GeneradoraPacientes(tipos_pacientes=100)
   ruta = ['URG101_003', 'DIV101_703', 'DIV101_603','OPR102_001', 'OPR102_003', 'DIV101_603', 'END']
   #pacientes = generadora.generar_pacientes(horas=48)
-  generadora.generar_ruta(cantidad_tipo_pacientes=5)
+  rutas_concurridas = generadora.generar_ruta(repeticiones_totales=5000)
+
+  i=0
+  for ruta_prob in rutas_concurridas:
+      i+=1
+      ruta, prob = ruta_prob
+      print(colored(f'{i}. La ruta: {ruta}', 'yellow'))
+      print(colored(f'Prob de asignación: {round(prob, 6)*100}%', 'blue'))
