@@ -57,7 +57,7 @@ def generar_ruta_aleatoria(archivo_heatmap_json):
         ruta.append(sala_actual)
     return ruta
 
-def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales):
+def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales=1000):
     '''
     Genera muuuchas rutas aleatorias, para luego ordenarlas desde la más frecuente/repetida.
     Retorna una lista de tuplas, de la forma --> [([ruta], prob_relativa), ...]

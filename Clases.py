@@ -42,12 +42,13 @@ class GeneradoraPacientes:
         
         return self.distribucion
 
-    def generar_ruta(self, repeticiones_totales):
+    def generar_ruta(self):
         '''
-        Retorna una lista de tuplas de la forma [([ruta], prob_relativa), ...]
-        El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde a cuántos tipos de pacientes hay
+        Retorna una ruta aleatoria
+        Esta se escoge una ruta de la lista de tuplas --> [([ruta], prob_relativa), ...]
+        El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde al total de tipos de pacientes (self.tipos_pacientes)
         '''
-        rutas_concurridas_ordenadas = encontrar_rutas_probables('heatmap.json', repeticiones_totales)
+        rutas_concurridas_ordenadas = encontrar_rutas_probables('heatmap.json')
         # Se corta la lista anterior según la cantidad de tipos de pacientes que definimos
         rutas_tipo_pacientes = rutas_concurridas_ordenadas[:self.tipos_pacientes]
 
@@ -55,14 +56,18 @@ class GeneradoraPacientes:
         for ruta, repeticion in rutas_tipo_pacientes:
             suma_repeticiones += repeticion
 
-        rutas_prob_relativas = list()
+        posibles_rutas = list()
+        prob_relativas = list()
+
         for ruta, repeticion in rutas_tipo_pacientes:
-
+            ruta = list(ruta)
             prob_relativa = repeticion / suma_repeticiones
-            ruta_prob_relativa = (ruta, prob_relativa)
-            rutas_prob_relativas.append(ruta_prob_relativa)
+            posibles_rutas.append(ruta)
+            prob_relativas.append(prob_relativa)
 
-        return rutas_prob_relativas
+        ruta_para_asignar = random.choices(posibles_rutas, weights=prob_relativas, k=1)
+        ruta_para_asignar = ruta_para_asignar[0]
+        return ruta_para_asignar
 
     def asignar_estadias(self, ruta):
         estadias = []
@@ -71,6 +76,9 @@ class GeneradoraPacientes:
         for parada in ruta:
             for sala in salas:
                 if parada == sala:
+                    if parada == 'End':
+                        estadias.append(0)
+                        continue
                     distribucion = list(distribuciones_estadias[sala].keys())[0]
                     if distribucion == 'beta':
                         param_a = distribuciones_estadias[sala]['beta']['a']
@@ -236,13 +244,4 @@ class Hospital:
 
 if __name__ == "__main__":
   generadora = GeneradoraPacientes(tipos_pacientes=100)
-  ruta = ['URG101_003', 'DIV101_703', 'DIV101_603','OPR102_001', 'OPR102_003', 'DIV101_603', 'END']
-  #pacientes = generadora.generar_pacientes(horas=48)
-  rutas_concurridas = generadora.generar_ruta(repeticiones_totales=5000)
-
-  i=0
-  for ruta_prob in rutas_concurridas:
-      i+=1
-      ruta, prob = ruta_prob
-      print(colored(f'{i}. La ruta: {ruta}', 'yellow'))
-      print(colored(f'Prob de asignación: {round(prob, 6)*100}%', 'blue'))
+  pacientes = generadora.generar_pacientes(horas=48)
