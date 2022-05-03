@@ -72,33 +72,38 @@ class GeneradoraPacientes:
     def asignar_estadias(self, ruta):
         estadias = []
         distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones.json')
-        salas = distribuciones_estadias.keys()
+        
+        params_opr = distribuciones_estadias['estadias_opr']['lognorm']
+        params_urg = distribuciones_estadias['estadias_urg']['lognorm']
+        params_div = distribuciones_estadias['estadias_div']['beta']
+
         for parada in ruta:
-            for sala in salas:
-                if parada == sala:
-                    if parada == 'End':
-                        estadias.append(0)
-                        continue
-                    distribucion = list(distribuciones_estadias[sala].keys())[0]
-                    if distribucion == 'beta':
-                        param_a = distribuciones_estadias[sala]['beta']['a']
-                        param_b = distribuciones_estadias[sala]['beta']['b']
-                        location = distribuciones_estadias[sala]['beta']['loc']
-                        scale = distribuciones_estadias[sala]['beta']['scale']
+            if "OPR" in parada:
+                shape = params_opr['s']
+                location = params_opr['loc']
+                scale = params_opr['scale']
                         
-                        estadia = (np.random.beta(a=param_a, b=param_b) - location) / scale 
-
-                    elif distribucion == 'lognorm':
-                        shape = distribuciones_estadias[sala]['lognorm']['s']
-                        location = distribuciones_estadias[sala]['lognorm']['loc']
-                        scale = distribuciones_estadias[sala]['lognorm']['scale']
+                estadia = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+    
+            elif "URG" in parada:
+                shape = params_urg['s']
+                location = params_urg['loc']
+                scale = params_urg['scale']
                         
-                        estadia = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+                estadia = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale            
+           
+            elif "DIV" in parada:
+                param_a = params_div['a']
+                param_b = params_div['b']
+                location = params_div['loc']
+                scale = params_div['scale']
 
-                    else:
-                        raise Exception('Distribución no identificada para las estadias')
-                    
-                    estadias.append(estadia)
+                estadia = (np.random.beta(a=param_a, b=param_b) - location) / scale 
+            
+            else:
+                raise Exception('Distribución no identificada para las estadias')
+
+            estadias.append(estadia)
 
         return estadias
 
