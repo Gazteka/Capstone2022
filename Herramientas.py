@@ -57,9 +57,10 @@ def generar_ruta_aleatoria(archivo_heatmap_json):
         ruta.append(sala_actual)
     return ruta
 
-def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales=1000):
+def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales=1000, hacer_print = False):
     '''
     Genera muuuchas rutas aleatorias, para luego ordenarlas desde la más frecuente/repetida.
+    Genera un json. 500mil repeticiones record
     Retorna una lista de tuplas, de la forma --> [([ruta], prob_relativa), ...]
     '''
     muchas_rutas_aleatorias = list()
@@ -73,8 +74,41 @@ def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales=1000):
     # Ordena el diccionario. Las rutas con mayor repetición estarán al comienzo.
     # Esta nueva variable es una lista de tuplas --> [(1era ruta+repetida, n°rep), (2da ruta+repetida, n°rep), ...]
     contar_repeticiones_ordenado = sorted(contar_repeticiones.items(), key = lambda x: x[1], reverse=True)
+    
+    # Escogen los 95 rutas más frecuentes
+    contar_repeticiones_ordenado = contar_repeticiones_ordenado[:95]
+
+    rep_total = 0
+    rutas = list()
+    for ruta, rep in contar_repeticiones_ordenado:
+        rep_total += rep
+        rutas.append(ruta)
+    
+    probabilidades = list()
+    for rupa, rep in contar_repeticiones_ordenado:
+        probabilidades.append(round(rep/rep_total, 8))
+
+    rutas_dict = dict()
+    for index in range(len(rutas)):
+        ruta_prob = dict()
+        ruta_prob['ruta'] = list(rutas[index])
+        ruta_prob['prob'] = probabilidades[index]
+        rutas_dict[f'{index+1}'] = ruta_prob
+
+    # Hacer el json
+    direccion = os.path.join('Datos', 'rutas.json') 
+    with open(direccion, 'w') as file:
+        json.dump(rutas_dict, file)
+
+    if hacer_print == True:
+        for index in range(len(rutas)):
+            print(f'{index+1}. {rutas[index]}')
+            print(f'{index+1}. Prob: {probabilidades[index]}%')
 
     return contar_repeticiones_ordenado
+
+def generar_json_rutas_probables(archivo_heatmap_json, repeticiones_totales):
+    rutas_probables = encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales)
 
 def cantidad_total_rutas(archivo_heatmap_json, tiempo_ejecucion_segundos):
     '''
@@ -136,11 +170,8 @@ def preparar_datos(dic_datos,areas):
 
 
 
-
-
-
 if __name__ == "__main__":
     DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
     cargar_matriz_transicion(DIC_DATOS,AREAS)
-    encontrar_rutas_probables('heatmap.json', repeticiones_totales=1000)
+    rutas_probables = encontrar_rutas_probables('heatmap.json', repeticiones_totales=100000, hacer_print=False)
     #print(cantidad_total_rutas('heatmap.json', tiempo_ejecucion_segundos=5))
