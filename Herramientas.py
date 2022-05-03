@@ -107,9 +107,6 @@ def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales=1000, h
 
     return contar_repeticiones_ordenado
 
-def generar_json_rutas_probables(archivo_heatmap_json, repeticiones_totales):
-    rutas_probables = encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales)
-
 def cantidad_total_rutas(archivo_heatmap_json, tiempo_ejecucion_segundos):
     '''
     ¿Cuántas rutas distintas existirán en total?
@@ -173,5 +170,5 @@ def preparar_datos(dic_datos,areas):
 if __name__ == "__main__":
     DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
     cargar_matriz_transicion(DIC_DATOS,AREAS)
-    rutas_probables = encontrar_rutas_probables('heatmap.json', repeticiones_totales=100000, hacer_print=False)
+    rutas_probables = encontrar_rutas_probables('heatmap.json', repeticiones_totales=1000, hacer_print=False)
     #print(cantidad_total_rutas('heatmap.json', tiempo_ejecucion_segundos=5))
