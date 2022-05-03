@@ -146,6 +146,12 @@ class GeneradoraPacientes:
         
         return np.array(self.pacientes)
 
+    def diccionario_pacientes(self):
+
+        pacientes_dict = dict()
+        for paciente in self.pacientes:
+            pacientes_dict[paciente.id] = paciente
+        return pacientes_dict
 
 class Sala:
     def __init__(self,nombre):
@@ -188,7 +194,7 @@ class Paciente:
     def __init__(self, id, ruta, hora_llegada, estadias):
         self.id = id
         self.ruta = ruta
-        self.hora_llegada = hora_llegada
+        self.hora_llegada = hora_llegada # Debemos pasarlo a timestap
         self.estadias = estadias
     
     def __str__(self):
@@ -250,3 +256,4 @@ class Hospital:
 if __name__ == "__main__":
     generadora = GeneradoraPacientes(tipos_pacientes=100)
     pacientes = generadora.generar_pacientes(horas=480, nombre_archivo_rutas='rutas.json')
+    print(generadora.diccionario_pacientes())
