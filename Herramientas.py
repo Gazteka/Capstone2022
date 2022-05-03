@@ -4,6 +4,8 @@ import os
 import random
 import datetime 
 import json
+import time
+from collections import Counter
 
 
 CARPETA = "Datos"
@@ -24,8 +26,72 @@ def cargar_matriz_transicion(dic_datos,areas):
         transiciones = (derivacion_urgencia.value_counts()/derivacion_urgencia.shape[0])
         df_heatmap[area] = transiciones
     df_heatmap = df_heatmap.fillna(0)
-
+    df_heatmap.to_json("Datos\heatmap.json", orient = 'columns')
     return df_heatmap
+
+def generar_ruta_aleatoria(archivo_heatmap_json):
+    '''
+    Genera 1 ruta aleatoria de la forma --> ['URG101_003', ... , 'End']
+    Se realiza de manera aleatoria, con las probabilidades de transición de heatmap.json
+    '''
+
+    direccion = os.path.join('Datos', str(archivo_heatmap_json)) 
+    with open(direccion) as file:
+        data = json.load(file)
+
+    sala_inicial = 'URG101_003'
+    sala_final   = 'End'
+    sala_actual = sala_inicial
+
+    ruta = list()
+    ruta.append(sala_actual)
+    # Mientras no salga de urgencias
+    while sala_actual != sala_final:
+
+        salas = list(data[sala_actual].keys()) # A modo de eficiencia podría ir fuera del while, creo.
+        prob_transicion_salas = list(data[sala_actual].values())
+
+        sala_siguiente = random.choices(salas, weights=prob_transicion_salas, k=1)
+        sala_actual = sala_siguiente[0]
+
+        ruta.append(sala_actual)
+    return ruta
+
+def encontrar_rutas_probables(archivo_heatmap_json, repeticiones_totales):
+    '''
+    Genera muuuchas rutas aleatorias, para luego ordenarlas desde la más frecuente/repetida.
+    Retorna una lista de tuplas, de la forma --> [([ruta], prob_relativa), ...]
+    '''
+    muchas_rutas_aleatorias = list()
+    for i in range(repeticiones_totales):
+        nueva_ruta = generar_ruta_aleatoria(archivo_heatmap_json)
+        muchas_rutas_aleatorias.append(nueva_ruta)
+
+    # Crea un diccionario {ruta1: n° de repeticiones, ruta2: n° de repeticiones, ...}
+    contar_repeticiones = dict(Counter(tuple(x) for x in muchas_rutas_aleatorias))
+    
+    # Ordena el diccionario. Las rutas con mayor repetición estarán al comienzo.
+    # Esta nueva variable es una lista de tuplas --> [(1era ruta+repetida, n°rep), (2da ruta+repetida, n°rep), ...]
+    contar_repeticiones_ordenado = sorted(contar_repeticiones.items(), key = lambda x: x[1], reverse=True)
+
+    return contar_repeticiones_ordenado
+
+def cantidad_total_rutas(archivo_heatmap_json, tiempo_ejecucion_segundos):
+    '''
+    ¿Cuántas rutas distintas existirán en total?
+    10min --> 9187 rutas en total
+    '''
+    
+    tiempo_termino = time.time() + tiempo_ejecucion_segundos
+    rutas = list()
+    while time.time() <= tiempo_termino:
+
+        posible_nueva_ruta = generar_ruta_aleatoria(archivo_heatmap_json)
+        # Si es una nueva ruta
+        if posible_nueva_ruta not in rutas:
+            rutas.append(posible_nueva_ruta)
+    
+    return len(rutas)
 
 def preparar_datos(dic_datos,areas):
     dataset = {}
@@ -75,4 +141,6 @@ def preparar_datos(dic_datos,areas):
 
 if __name__ == "__main__":
     DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
-    print(cargar_matriz_transicion(DIC_DATOS,AREAS))
+    cargar_matriz_transicion(DIC_DATOS,AREAS)
+    encontrar_rutas_probables('heatmap.json', repeticiones_totales=1000)
+    #print(cantidad_total_rutas('heatmap.json', tiempo_ejecucion_segundos=5))
