@@ -70,9 +70,25 @@ def preparar_datos(dic_datos,areas):
 
 
 
+def cargar_distribuciones(dic_salas):
+    file = os.path.join("Datos","distribuciones_varias.json")
+    file = open(file,"r")
+    file = json.load(file)
+    for sala in dic_salas:
+        if "OPR" in sala:
+            print(sala)
+            dic_salas[sala].distribucion = file["estadias_operaciones"]
+        elif "DIV" in sala:
+            dic_salas[sala].distribucion = file["estadias_div"]
+        elif "URG" in sala:
+            dic_salas[sala].distribucion = file["estadias_urg"]
+        else:
+            dic_salas[sala].distribucion = {}
+    return dic_salas
+
 
 
 
 if __name__ == "__main__":
     DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
-    print(cargar_matriz_transicion(DIC_DATOS,AREAS))
+    print(cargar_distribuciones({}))

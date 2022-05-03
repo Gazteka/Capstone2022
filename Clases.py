@@ -151,6 +151,7 @@ class Sala:
     def __init__(self,nombre):
         self.nombre = nombre
         self.pacientes = []
+        self.recursos = dict()
     
     def __str__(self):
         return self.nombre
@@ -159,30 +160,39 @@ class Sala:
         return self.nombre
       
     def llegada(self,paciente,timestamp):
+        print(self.nombre,self.recursos)
+        #Separamos el traslado
         entrada = timestamp
-        
-        print(entrada)
-        entrada = datetime.datetime.strptime(str(entrada),"%Y-%m-%d %H:%M:%S")
-        estadia = paciente.estadias[self.nombre][0]
-        salida = entrada + datetime.timedelta(hours=estadia)
-        # salida = datetime.datetime.strftime(salida,"%Y-%m-%d %H:%M:%S")
-        dict_paciente = {"paciente":paciente.id,"entrada":entrada,"salida":salida}
-        self.pacientes.append(dict_paciente)
-        print(f"Paciente {paciente} ha entrado en {self.nombre} a las {entrada};salida a las {salida}")
-        traslado = (self.nombre,paciente.estadias[self.nombre][1])
-        next_event = {"paciente":paciente,"timestamp":salida,"type":"Traslado","content":traslado}
-
         if self.nombre == "End":
             return {}
+        traslado = paciente.estadias.pop(0)
+        if traslado[0] != self.nombre:
+            print(self.nombre)
+            print(colored("*"*20,"red"))
+            print(colored(f"ERROR {traslado}","red"))
+            print(colored("*"*20,"red"))
+        siguiente_sala = traslado[2]
+        estadia = traslado[1]
+        salida = entrada + datetime.timedelta(hours = estadia)
 
+        #Agregamos el paciente a la sala
+        dict_paciente = {"paciente":paciente.id,"entrada":entrada,"salida":salida}
+        self.pacientes.append(dict_paciente)
+        
+        #Creamos el evento de traslado
+        traslado = (self.nombre,siguiente_sala)
+        next_evento = {"paciente":paciente,"timestamp":salida,"type":"Traslado","content":traslado}
 
-        return next_event
+        return next_evento
+        
+
     def salida(self,paciente,timestamp):
-        # print(self.pacientes)
         encontrar = [paciente_encontrado for paciente_encontrado in self.pacientes if 
                         paciente_encontrado["paciente"] == paciente.id][0]
         self.pacientes.remove(encontrar)
         print(f"Paciente {paciente} ha salido de {self.nombre}a las {timestamp}")
+
+
         
 class Paciente:
     def __init__(self, id, ruta, hora_llegada, estadias):
@@ -208,7 +218,7 @@ class Hospital:
         self.eventos = []
         for case_id in pacientes:
             paciente_individual = pacientes[case_id]
-            llegada = paciente_individual.entrada
+            llegada = paciente_individual.hora_llegada
             event = {"paciente":case_id,"timestamp":llegada,"type":"Entrada","content":paciente_individual.ruta[0]}
             self.eventos.append(event)
 
@@ -224,8 +234,10 @@ class Hospital:
         next_evento = self.eventos.pop(0)
         if next_evento["type"] == "Entrada":
             case_id = next_evento["paciente"]
-            print(f"Paciente {case_id} ha llegado al hospital")
+            print(colored(f"Paciente {case_id} ha llegado al hospital","green"))
             evento = self.salas["URG101_003"].llegada(self.pacientes[case_id],next_evento["timestamp"])
+            if evento == {}:
+                return
             self.eventos.append(evento)
         if next_evento["type"] == "Traslado":
             paciente = next_evento["paciente"]
@@ -233,13 +245,17 @@ class Hospital:
             sale_de = next_evento["content"][0]
             
             entra_a = next_evento["content"][1]
+            if entra_a == "End":
+                print(colored(f"Paciente terminó su tratamiento {paciente}","green"))
+                return 
             self.salas[sale_de].salida(paciente,timestamp)
-            print("traslado hacia",entra_a)
+            print(colored(f"Traslado hacia {entra_a}:paciente n°{paciente}","blue"))
             evento = self.salas[entra_a].llegada(paciente,timestamp)
             if evento != {}:
                 self.eventos.append(evento)
         else:
-            print(next_evento)
+            # print(next_evento)
+            return 
 
     def simular(self):
         while len(self.eventos) > 0:
@@ -250,5 +266,5 @@ class Hospital:
 if __name__ == "__main__":
   generadora = GeneradoraPacientes()
   ruta = ['URG101_003', 'DIV101_703', 'DIV101_603','OPR102_001', 'OPR102_003', 'DIV101_603', 'END']
-  #pacientes = generadora.generar_pacientes(horas=48)
+#   pacientes = generadora.generar_pacientes(horas=48)
   generadora.generar_ruta(cantidad_tipo_pacientes=5)
