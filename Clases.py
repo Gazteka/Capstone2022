@@ -42,28 +42,28 @@ class GeneradoraPacientes:
         
         return self.distribucion
 
-    def generar_ruta(self):
+    def generar_ruta(self, nombre_archivo_rutas):
         '''
         Retorna una ruta aleatoria
         Esta se escoge una ruta de la lista de tuplas --> [([ruta], prob_relativa), ...]
         El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde al total de tipos de pacientes (self.tipos_pacientes)
         '''
-        rutas_concurridas_ordenadas = encontrar_rutas_probables('heatmap.json')
-        # Se corta la lista anterior según la cantidad de tipos de pacientes que definimos
-        rutas_tipo_pacientes = rutas_concurridas_ordenadas[:self.tipos_pacientes]
+        #rutas_concurridas_ordenadas = encontrar_rutas_probables('heatmap.json')
 
-        suma_repeticiones = 0
-        for ruta, repeticion in rutas_tipo_pacientes:
-            suma_repeticiones += repeticion
+        direccion = os.path.join('Datos', nombre_archivo_rutas) 
+        with open(direccion) as file:
+            rutas_dict = json.load(file)
+        
+        id_rutas = list(rutas_dict.keys())
+        rutas_prob = list(rutas_dict.values())
 
         posibles_rutas = list()
         prob_relativas = list()
 
-        for ruta, repeticion in rutas_tipo_pacientes:
-            ruta = list(ruta)
-            prob_relativa = repeticion / suma_repeticiones
-            posibles_rutas.append(ruta)
-            prob_relativas.append(prob_relativa)
+        for ruta_prob_dict in rutas_prob:
+            ruta_prob = list(ruta_prob_dict.values())
+            posibles_rutas.append(ruta_prob[0])
+            prob_relativas.append(ruta_prob[1])
 
         ruta_para_asignar = random.choices(posibles_rutas, weights=prob_relativas, k=1)
         ruta_para_asignar = ruta_para_asignar[0]
@@ -109,7 +109,7 @@ class GeneradoraPacientes:
         self.ids.append(id)
         return id
     
-    def generar_pacientes(self, horas):
+    def generar_pacientes(self, horas, nombre_archivo_rutas):
         np.random.seed(self.seed)
 
         hora_dia = 0
@@ -126,7 +126,7 @@ class GeneradoraPacientes:
             n_pacientes += 1 
             
             id_paciente = self.generar_id()
-            ruta_paciente = self.generar_ruta()
+            ruta_paciente = self.generar_ruta(nombre_archivo_rutas)
             estadias_paciente = self.asignar_estadias(ruta_paciente)
             
             paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=llegada_paciente, estadias=estadias_paciente)
@@ -243,5 +243,5 @@ class Hospital:
         return 0
 
 if __name__ == "__main__":
-  generadora = GeneradoraPacientes(tipos_pacientes=100)
-  pacientes = generadora.generar_pacientes(horas=48)
+    generadora = GeneradoraPacientes(tipos_pacientes=100)
+    pacientes = generadora.generar_pacientes(horas=480, nombre_archivo_rutas='rutas.json')
