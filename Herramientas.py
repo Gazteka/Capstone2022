@@ -77,7 +77,7 @@ def cargar_distribuciones(dic_salas):
     for sala in dic_salas:
         if "OPR" in sala:
             print(sala)
-            dic_salas[sala].distribucion = file["estadias_operaciones"]
+            dic_salas[sala].distribucion = file["estadias_opr"]
         elif "DIV" in sala:
             dic_salas[sala].distribucion = file["estadias_div"]
         elif "URG" in sala:

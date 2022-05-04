@@ -9,6 +9,23 @@ import os
 import math
 from colorama import init
 from termcolor import colored
+import time
+
+def timer(funcion):
+    """
+    Se crea un decorador (googlear) del tipo timer para testear el tiempo
+    de ejecucion del programa
+    """
+    def inner(*args, **kwargs):
+
+        inicio = time.time()
+        resultado = funcion(*args, **kwargs)
+        final = round(time.time() - inicio, 3)
+        print("\nTiempo de ejecucion total: {}[s]".format(final))
+
+        return resultado
+    return inner
+
  
 
 dataset,areas = preparar_datos(DIC_DATOS,AREAS)
@@ -152,6 +169,9 @@ class Sala:
         self.nombre = nombre
         self.pacientes = []
         self.recursos = dict()
+        self.salas_prohibidas = ["End","Outside"]
+        self.fila = []
+
     
     def __str__(self):
         return self.nombre
@@ -160,11 +180,21 @@ class Sala:
         return self.nombre
       
     def llegada(self,paciente,timestamp):
-        print(self.nombre,self.recursos)
         #Separamos el traslado
         entrada = timestamp
         if self.nombre == "End":
             return {}
+
+        ans = self.atender_pacientes(paciente)
+        if type(ans) == bool:
+            print("Va a la fila")
+            self.fila.append(paciente)
+            print(colored(self.fila,"red","on_grey"))
+            return {}
+        # elif type(ans) == str:
+        #     pass
+        # elif type(ans) == int:
+        #     print("Usa recursos")
         traslado = paciente.estadias.pop(0)
         if traslado[0] != self.nombre:
             print(self.nombre)
@@ -174,24 +204,88 @@ class Sala:
         siguiente_sala = traslado[2]
         estadia = traslado[1]
         salida = entrada + datetime.timedelta(hours = estadia)
-
+        traslado =(self.nombre,siguiente_sala)
         #Agregamos el paciente a la sala
         dict_paciente = {"paciente":paciente.id,"entrada":entrada,"salida":salida}
         self.pacientes.append(dict_paciente)
-        
-        #Creamos el evento de traslado
-        traslado = (self.nombre,siguiente_sala)
+        n = len(self.fila)
+        print(colored(f"Fila : {self.nombre},{n}","magenta"))
+    
         next_evento = {"paciente":paciente,"timestamp":salida,"type":"Traslado","content":traslado}
 
         return next_evento
-        
+
+    def atender_pacientes(self,paciente):
+        keys = self.recursos
+
+        if "camas" in keys:
+            camas = self.recursos["camas"]
+            for cama in camas:
+                if camas[cama] == False:
+                    print(colored(f"Cama {cama} disponible","red"))
+                    camas[cama] = paciente
+                    return cama
+            return False
+
+        elif "box_atencion" in keys:
+            boxes = self.recursos["box_atencion"]
+            for box in boxes:
+                if boxes[box] == False:
+                    print(colored(f"Box {box} disponible","red"))
+                    boxes[box] = paciente
+                    return box
+            return False
+
+        elif "quirofanos" in keys:
+            quirofanos = self.recursos["quirofanos"]
+            for quirofano in quirofanos:
+                quirofanos[quirofano] = paciente
+                return quirofano
+
+            return False
+        else:
+            return "No aplica"
+        pass
+
+
 
     def salida(self,paciente,timestamp):
+        print(self.fila)
         encontrar = [paciente_encontrado for paciente_encontrado in self.pacientes if 
                         paciente_encontrado["paciente"] == paciente.id][0]
         self.pacientes.remove(encontrar)
-        print(f"Paciente {paciente} ha salido de {self.nombre}a las {timestamp}")
+        keys = self.recursos.keys()
+        if "camas" in keys:
+            camas = self.recursos["camas"]
+            for cama in camas:
+                if camas[cama] == paciente:
+                    print(colored(f"{paciente} encontrado en cama{cama} ","cyan"))
+                    camas[cama] = False
+        elif "box_atencion" in keys:
+            boxes = self.recursos["box_atencion"]
+            for box in boxes:
+                if boxes[box] == paciente:
+                    print(colored(f"{paciente} encontrado en box{box}","cyan"))
+                    boxes[box] = False
+        elif "quirofanos" in keys:
+            quirofanos = self.recursos["quirofanos"]
+            for quirofano in quirofanos:
+                if quirofanos[quirofano] == paciente:
+                    print(colored(f"{paciente} encontrado en {quirofano}","cyan"))
+                    quirofanos[quirofano] = False
 
+        else:
+            pass
+        print(colored(f"Paciente {paciente} ha salido de {self.nombre}a las {timestamp}","yellow"))
+        largo_fila = len(self.fila)
+        if largo_fila > 0:
+            siguiente_paciente = self.fila.pop(0)
+            next_evento = self.llegada(siguiente_paciente,timestamp)
+            if next_evento != {}:
+                print(colored(f"Paciente {paciente.id} ha salido de la fila ","magenta"))
+            return next_evento
+        else:
+            return {}
 
         
 class Paciente:
@@ -245,10 +339,12 @@ class Hospital:
             sale_de = next_evento["content"][0]
             
             entra_a = next_evento["content"][1]
+            evento_fila = self.salas[sale_de].salida(paciente,timestamp)
+            if evento_fila != {}:
+                self.eventos.append(evento_fila)
             if entra_a == "End":
                 print(colored(f"Paciente terminó su tratamiento {paciente}","green"))
                 return 
-            self.salas[sale_de].salida(paciente,timestamp)
             print(colored(f"Traslado hacia {entra_a}:paciente n°{paciente}","blue"))
             evento = self.salas[entra_a].llegada(paciente,timestamp)
             if evento != {}:
@@ -256,7 +352,7 @@ class Hospital:
         else:
             # print(next_evento)
             return 
-
+    @timer
     def simular(self):
         while len(self.eventos) > 0:
             self.siguiente_evento()

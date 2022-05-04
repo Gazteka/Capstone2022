@@ -97,16 +97,16 @@ dic_salas = cargar_distribuciones(dic_salas)
 #     print(pacientes[paciente].hora_llegada)
 
 
-muestra ={14252611:pacientes[14252611]}
+muestra ={14570860:pacientes[14570860]}
 # for paciente in muestra:
 #     print(pacientes[paciente].estadias)
 #     print(pacientes[paciente].ruta)
 #     print(pacientes[paciente].hora_llegada)
 
 ## Cargamos el hospital
-# hospital = Hospital(dic_salas)
-# hospital.recibir_pacientes(muestra)
-# hospital.simular()
+hospital = Hospital(dic_salas)
+hospital.recibir_pacientes(pacientes)
+hospital.simular()
 # print(hospital.eventos)
 
 # print(hospital)
@@ -117,3 +117,16 @@ muestra ={14252611:pacientes[14252611]}
 #     sala.llegada(pacientes[paciente])
 #     sala.salida(pacientes[paciente])
 #     break
+
+
+#Contar con una decision sobre el modelo
+#analsis detallado de los datos
+#tener ya una metodologia del problema
+#Solucion computacional inicial
+#detallar las herramientas utilizadas (Incluyendo supuestos ) 
+# En base a la metodologia mostrar resultados obtenidos
+#mostrar una discusion más completa, explicar las razones de su seleccion
+# Dejar claramente especificado los puntos fuertes de la solucion propuesta
+# Plan de trabajo definido para las siguientes etapas
+
+
