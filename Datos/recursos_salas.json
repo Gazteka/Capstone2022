@@ -53,12 +53,14 @@
     },
 
     "OPR102_003": {
+        "quirofanos":1,
         "hora_inicio": 8,
         "hora_final": 18,
         "hora_limite": 20
     },
 
     "OPR101_033": {
+        "quirofanos":1,
         "hora_inicio": 0,
         "hora_final": 24
     }

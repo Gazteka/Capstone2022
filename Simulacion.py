@@ -66,11 +66,17 @@ def cargar_recursos_sala():
             sala_actual.recursos['hora_limite'] = recursos_sala[nombre_sala]['hora_limite']
 
         elif nombre_sala == 'OPR102_003':
+            sala_actual.recursos['quirofanos'] = dict()
+            for quirofano in range(1, recursos_sala[nombre_sala]['quirofanos']+1):
+                sala_actual.recursos['quirofanos'][quirofano] = False
             sala_actual.recursos['hora_inicio'] =  recursos_sala[nombre_sala]['hora_inicio']
             sala_actual.recursos['hora_final'] = recursos_sala[nombre_sala]['hora_final']
             sala_actual.recursos['hora_limite'] = recursos_sala[nombre_sala]['hora_limite']
         
         elif nombre_sala == 'OPR101_033':
+            sala_actual.recursos['quirofanos'] = dict()
+            for quirofano in range(1, recursos_sala[nombre_sala]['quirofanos']+1):
+                sala_actual.recursos['quirofanos'][quirofano] = False
             sala_actual.recursos['hora_inicio'] = recursos_sala[nombre_sala]['hora_inicio']
             sala_actual.recursos['hora_final'] = recursos_sala[nombre_sala]['hora_final']
 

@@ -185,14 +185,16 @@ class Sala:
         if self.nombre == "End":
             return {}
 
-        ans = self.atender_pacientes(paciente)
+        ans = self.atender_pacientes(paciente,timestamp)
         if type(ans) == bool:
-            print("Va a la fila")
             self.fila.append(paciente)
             print(colored(self.fila,"red","on_grey"))
             return {}
-        # elif type(ans) == str:
-        #     pass
+        elif type(ans) == datetime.datetime: #Caso quirofano cerrado
+            self.fila.append(paciente)
+            print(colored(self.fila,"red","on_grey"))
+            return {"timestamp":ans,"type":"Apertura","content":self.nombre}
+            pass
         # elif type(ans) == int:
         #     print("Usa recursos")
         traslado = paciente.estadias.pop(0)
@@ -215,9 +217,9 @@ class Sala:
 
         return next_evento
 
-    def atender_pacientes(self,paciente):
+    def atender_pacientes(self,paciente,timestamp):
         keys = self.recursos
-
+        hora_actual = timestamp.hour
         if "camas" in keys:
             camas = self.recursos["camas"]
             for cama in camas:
@@ -237,12 +239,35 @@ class Sala:
             return False
 
         elif "quirofanos" in keys:
-            quirofanos = self.recursos["quirofanos"]
-            for quirofano in quirofanos:
-                quirofanos[quirofano] = paciente
-                return quirofano
+            hora_inicio = self.recursos["hora_inicio"]
+            hora_final = self.recursos["hora_final"]
+            if (hora_actual >= hora_inicio) :
+                    if hora_actual < hora_final:
+                        quirofanos = self.recursos["quirofanos"]
+                        for quirofano in quirofanos:
+                            quirofanos[quirofano] = paciente
+                            return quirofano
 
-            return False
+                        return False
+                    else:
+                        print("DIA HOY",timestamp)
+                        proximo_dia = timestamp +datetime.timedelta(days = 1)
+                        año = proximo_dia.year
+                        mes = proximo_dia.month
+                        dia = proximo_dia.day
+                        proxima_atencion = datetime.datetime(año,mes,dia,hora_inicio)
+                        return proxima_atencion
+            else :
+                    print("DIA HOY",timestamp)
+                    proximo_dia = timestamp 
+                    año = proximo_dia.year
+                    mes = proximo_dia.month
+                    dia = proximo_dia.day
+                    proxima_atencion = datetime.datetime(año,mes,dia,hora_inicio)
+                    return proxima_atencion
+
+
+
         else:
             return "No aplica"
         pass
@@ -250,7 +275,6 @@ class Sala:
 
 
     def salida(self,paciente,timestamp):
-        print(self.fila)
         encontrar = [paciente_encontrado for paciente_encontrado in self.pacientes if 
                         paciente_encontrado["paciente"] == paciente.id][0]
         self.pacientes.remove(encontrar)
@@ -305,6 +329,7 @@ class Hospital:
 
     def __init__(self,salas):
         self.salas = salas
+        self.hora = 0
 
     
     def recibir_pacientes(self,pacientes):
@@ -326,14 +351,18 @@ class Hospital:
     
     def siguiente_evento(self):
         next_evento = self.eventos.pop(0)
+        
         if next_evento["type"] == "Entrada":
+            self.hora = next_evento["timestamp"]
+
             case_id = next_evento["paciente"]
             print(colored(f"Paciente {case_id} ha llegado al hospital","green"))
             evento = self.salas["URG101_003"].llegada(self.pacientes[case_id],next_evento["timestamp"])
             if evento == {}:
                 return
             self.eventos.append(evento)
-        if next_evento["type"] == "Traslado":
+        elif next_evento["type"] == "Traslado":
+            self.hora = next_evento["timestamp"]
             paciente = next_evento["paciente"]
             timestamp = next_evento["timestamp"]
             sale_de = next_evento["content"][0]
@@ -349,6 +378,17 @@ class Hospital:
             evento = self.salas[entra_a].llegada(paciente,timestamp)
             if evento != {}:
                 self.eventos.append(evento)
+        elif  next_evento["type"] == "Apertura":
+            self.hora = next_evento["timestamp"]
+            sala_abrir = next_evento["content"]
+            fila = self.salas[sala_abrir].fila
+            if len(fila) > 0:
+                paciente = self.salas[sala_abrir].fila.pop(0)
+                evento = self.salas[sala_abrir].llegada(paciente,self.hora)
+                print(colored(f"Paciente({paciente.id}) entró a la apertura de {sala_abrir}","blue"))
+                if evento != {}:
+                    self.eventos.append(evento)
+
         else:
             # print(next_evento)
             return 
@@ -356,8 +396,12 @@ class Hospital:
     def simular(self):
         while len(self.eventos) > 0:
             self.siguiente_evento()
+            self.decir_hora()
             self.ordenar_eventos()
         return 0
+    def decir_hora(self):
+        print(self.hora)
+
 
 if __name__ == "__main__":
   generadora = GeneradoraPacientes()
