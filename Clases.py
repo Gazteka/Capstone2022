@@ -117,8 +117,7 @@ class GeneradoraPacientes:
     
     def generar_pacientes(self, horas, nombre_archivo_rutas, timestamp_inicio=datetime.datetime(2021,1,1,0,0,0,0), timestamp_termino=datetime.datetime(2021,1,2,0,0,0,0)):
         np.random.seed(self.seed)
-        print(timestamp_inicio)
-        #hora_dia = 0
+
         datos_distribucion = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
         location = datos_distribucion['loc']         # -0.1631080499945431
         scale = datos_distribucion["scale"]          # 3.01277091110916
@@ -126,6 +125,7 @@ class GeneradoraPacientes:
        
         n_pacientes = 0
         timestamp = timestamp_inicio
+
         while timestamp < timestamp_termino:
             tiempo_entre_llegadas = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale  # REVISAR PARAMETROS   
             timestamp += datetime.timedelta(hours=tiempo_entre_llegadas)
@@ -137,8 +137,7 @@ class GeneradoraPacientes:
             
             paciente = Paciente(id= id_paciente, ruta=ruta_paciente, marca_tiempo_llegada=timestamp, estadias=estadias_paciente)
             self.pacientes.append(paciente)
-            
-            #hora_dia += llegada_paciente  
+             
             print(colored(f'Paciente ID: {paciente.id}','blue')) 
             print(f'Llegada: {paciente.marca_tiempo_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
             print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
@@ -208,7 +207,6 @@ class Hospital:
     def __init__(self,salas):
         self.salas = salas
 
-    
     def recibir_pacientes(self,pacientes):
         self.pacientes = pacientes
         self.eventos = []
@@ -225,7 +223,6 @@ class Hospital:
         # print(self.eventos)
         pass
 
-    
     def siguiente_evento(self):
         next_evento = self.eventos.pop(0)
         if next_evento["type"] == "Entrada":
