@@ -1,12 +1,12 @@
 from distutils.log import error
 from functools import total_ordering
 from Herramientas import *
-from collections import Counter
 import random
 import numpy as np
 import json
 import os
 import math
+import datetime
 from colorama import init
 from termcolor import colored
  
@@ -17,12 +17,12 @@ class GeneradoraPacientes:
     '''
     Esta clase genera una lista de instancias de la clase pacientes con sus atributos respectivos 
     '''
-    def __init__(self, tipos_pacientes, seed=18):
+    def __init__(self, seed=18):
         self.seed = seed
         #self.distribución = None
         self.pacientes = []
         self.ids = []
-        self.tipos_pacientes = tipos_pacientes # Cantidad de tipos de pacientes. Cada uno tiene una ruta en particular
+        self.tipo_pacientes = int() # Se rellena este valor en generar_ruta()
 
     def cargar_distribucion(self, prob, nombre_archivo):
        
@@ -46,9 +46,8 @@ class GeneradoraPacientes:
         '''
         Retorna una ruta aleatoria
         Esta se escoge una ruta de la lista de tuplas --> [([ruta], prob_relativa), ...]
-        El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde al total de tipos de pacientes (self.tipos_pacientes)
+        El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde al total de tipos de pacientes
         '''
-        #rutas_concurridas_ordenadas = encontrar_rutas_probables('heatmap.json')
 
         direccion = os.path.join('Datos', nombre_archivo_rutas) 
         with open(direccion) as file:
@@ -56,6 +55,8 @@ class GeneradoraPacientes:
         
         id_rutas = list(rutas_dict.keys())
         rutas_prob = list(rutas_dict.values())
+
+        self.tipo_pacientes = len(id_rutas)
 
         posibles_rutas = list()
         prob_relativas = list()
@@ -114,35 +115,34 @@ class GeneradoraPacientes:
         self.ids.append(id)
         return id
     
-    def generar_pacientes(self, horas, nombre_archivo_rutas):
+    def generar_pacientes(self, horas, nombre_archivo_rutas, timestamp_inicio=datetime.datetime(2021,1,1,0,0,0,0), timestamp_termino=datetime.datetime(2021,1,2,0,0,0,0)):
         np.random.seed(self.seed)
-
-        hora_dia = 0
+        print(timestamp_inicio)
+        #hora_dia = 0
         datos_distribucion = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
         location = datos_distribucion['loc']         # -0.1631080499945431
         scale = datos_distribucion["scale"]          # 3.01277091110916
         shape = datos_distribucion["s"]              # 1.1325392177517544
        
         n_pacientes = 0
-
-        while hora_dia < horas:
+        timestamp = timestamp_inicio
+        while timestamp < timestamp_termino:
             tiempo_entre_llegadas = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale  # REVISAR PARAMETROS   
-            llegada_paciente = hora_dia + tiempo_entre_llegadas
+            timestamp += datetime.timedelta(hours=tiempo_entre_llegadas)
             n_pacientes += 1 
             
             id_paciente = self.generar_id()
             ruta_paciente = self.generar_ruta(nombre_archivo_rutas)
             estadias_paciente = self.asignar_estadias(ruta_paciente)
             
-            paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=llegada_paciente, estadias=estadias_paciente)
+            paciente = Paciente(id= id_paciente, ruta=ruta_paciente, marca_tiempo_llegada=timestamp, estadias=estadias_paciente)
             self.pacientes.append(paciente)
             
-            hora_dia += llegada_paciente  
-            hora_print, minuto_print = int(paciente.hora_llegada), int((paciente.hora_llegada-int(paciente.hora_llegada))*60)
+            #hora_dia += llegada_paciente  
             print(colored(f'Paciente ID: {paciente.id}','blue')) 
-            print(f'Hora de llegada: {hora_print}:{minuto_print} - Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
+            print(f'Llegada: {paciente.marca_tiempo_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
             print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
-            print(colored(f'Estadías Paciente: {paciente.estadias}', 'yellow'), '\n')
+            print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
         
         return np.array(self.pacientes)
 
@@ -191,10 +191,10 @@ class Sala:
         print(f"Paciente {paciente} ha salido de {self.nombre}a las {timestamp}")
         
 class Paciente:
-    def __init__(self, id, ruta, hora_llegada, estadias):
+    def __init__(self, id, ruta, marca_tiempo_llegada, estadias):
         self.id = id
         self.ruta = ruta
-        self.hora_llegada = hora_llegada # Debemos pasarlo a timestap
+        self.marca_tiempo_llegada = marca_tiempo_llegada
         self.estadias = estadias
     
     def __str__(self):
@@ -254,6 +254,5 @@ class Hospital:
         return 0
 
 if __name__ == "__main__":
-    generadora = GeneradoraPacientes(tipos_pacientes=100)
+    generadora = GeneradoraPacientes()
     pacientes = generadora.generar_pacientes(horas=480, nombre_archivo_rutas='rutas.json')
-    print(generadora.diccionario_pacientes())
