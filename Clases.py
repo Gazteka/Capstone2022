@@ -23,6 +23,8 @@ class GeneradoraPacientes:
         self.pacientes = []
         self.ids = []
         self.tipo_pacientes = int() # Se rellena este valor en generar_ruta()
+        self.distribucion_llegadas = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
+        self.distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones_varias.json')
 
     def cargar_distribucion(self, prob, nombre_archivo):
        
@@ -70,38 +72,60 @@ class GeneradoraPacientes:
         ruta_para_asignar = ruta_para_asignar[0]
         return ruta_para_asignar
 
+    def generar_valores_aleatorios(self, distribucion, params):
+        '''
+        Recibe un string que es el nombre de la distribución de probabilidad y un diccionario con sus parámetros correspondientes
+        Retorna el valor aleatorio correspondiente
+        '''
+        if distribucion == 'beta':
+            param_a = params['a']
+            param_b = params['b']
+            location = params['loc']
+            scale = params['scale']
+
+            valor_aleotorio = (np.random.beta(a=param_a, b=param_b) - location) / scale
+        
+        elif distribucion == 'lognorm':
+            shape = params['s']
+            location = params['loc']
+            scale = params['scale']
+                        
+            valor_aleotorio = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+
+        else:
+            raise Exception('Distribución no identificada')
+        
+        return valor_aleotorio
+
     def asignar_estadias(self, ruta):
         estadias = []
-        distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones.json')
         
-        params_opr = distribuciones_estadias['estadias_opr']['lognorm']
-        params_urg = distribuciones_estadias['estadias_urg']['lognorm']
-        params_div = distribuciones_estadias['estadias_div']['beta']
-
+        distibucion_opr = list(self.distribuciones_estadias['estadias_opr'].keys())[0]
+        distibucion_urg = list(self.distribuciones_estadias['estadias_urg'].keys())[0]
+        distibucion_div = list(self.distribuciones_estadias['estadias_div'].keys())[0]
+        
+        params_opr = self.distribuciones_estadias['estadias_opr'][distibucion_opr]
+        params_urg = self.distribuciones_estadias['estadias_urg'][distibucion_urg]
+        params_div = self.distribuciones_estadias['estadias_div'][distibucion_div] 
+        
         for parada in ruta:
             if "OPR" in parada:
-                shape = params_opr['s']
-                location = params_opr['loc']
-                scale = params_opr['scale']
-                        
-                estadia = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+                estadia = self.generar_valores_aleatorios(distribucion=distibucion_opr, params= params_opr)
     
             elif "URG" in parada:
-                shape = params_urg['s']
-                location = params_urg['loc']
-                scale = params_urg['scale']
-                        
-                estadia = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale            
+                estadia = self.generar_valores_aleatorios(distribucion=distibucion_urg, params= params_urg)           
            
             elif "DIV" in parada:
-                param_a = params_div['a']
-                param_b = params_div['b']
-                location = params_div['loc']
-                scale = params_div['scale']
-
-                estadia = (np.random.beta(a=param_a, b=param_b) - location) / scale 
+                estadia = self.generar_valores_aleatorios(distribucion=distibucion_div, params= params_div)
+            
+            elif parada == 'Outside':               # Corroborar esto con el resto
+                estadia = 0
+           
+            elif parada == 'End':
+                estadia = 0
             
             else:
+                print(parada)
                 raise Exception('Distribución no identificada para las estadias')
 
             estadias.append(estadia)
@@ -115,16 +139,16 @@ class GeneradoraPacientes:
         self.ids.append(id)
         return id
     
-    def generar_pacientes(self, horas, nombre_archivo_rutas, timestamp_inicio=datetime.datetime(2021,1,1,0,0,0,0), timestamp_termino=datetime.datetime(2021,1,2,0,0,0,0)):
+    def generar_pacientes(self, horas, nombre_archivo_rutas, timestamp_inicio=datetime.datetime(2021,1,1,0,0,0,0)):
         np.random.seed(self.seed)
 
-        datos_distribucion = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
-        location = datos_distribucion['loc']         # -0.1631080499945431
-        scale = datos_distribucion["scale"]          # 3.01277091110916
-        shape = datos_distribucion["s"]              # 1.1325392177517544
+        location = self.distribucion_llegadas['loc']         # -0.1631080499945431
+        scale = self.distribucion_llegadas["scale"]          # 3.01277091110916
+        shape = self.distribucion_llegadas["s"]              # 1.1325392177517544
        
         n_pacientes = 0
         timestamp = timestamp_inicio
+        timestamp_termino = timestamp_inicio + datetime.timedelta(hours=horas)
 
         while timestamp < timestamp_termino:
             tiempo_entre_llegadas = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale  # REVISAR PARAMETROS   
@@ -252,4 +276,4 @@ class Hospital:
 
 if __name__ == "__main__":
     generadora = GeneradoraPacientes()
-    pacientes = generadora.generar_pacientes(horas=480, nombre_archivo_rutas='rutas.json')
+    pacientes = generadora.generar_pacientes(horas=4368, nombre_archivo_rutas='rutas.json')
