@@ -182,6 +182,7 @@ class Sala:
     def llegada(self,paciente,timestamp):
         #Separamos el traslado
         entrada = timestamp
+        paciente.datos.append({self.nombre : timestamp})
         if self.nombre == "End":
             return {}
 
@@ -318,6 +319,7 @@ class Paciente:
         self.ruta = ruta
         self.hora_llegada = hora_llegada
         self.estadias = estadias
+        self.datos = []
     
     def __str__(self):
         return str(self.id)
@@ -330,6 +332,7 @@ class Hospital:
     def __init__(self,salas):
         self.salas = salas
         self.hora = 0
+        self.datos = {}
 
     
     def recibir_pacientes(self,pacientes):
@@ -347,7 +350,7 @@ class Hospital:
         self.eventos = sorted(self.eventos,key= lambda x :x["timestamp"])
         # print(self.eventos)
         pass
-
+    
     
     def siguiente_evento(self):
         next_evento = self.eventos.pop(0)
@@ -372,6 +375,7 @@ class Hospital:
             if evento_fila != {}:
                 self.eventos.append(evento_fila)
             if entra_a == "End":
+                evento = self.salas[entra_a].llegada(paciente,timestamp)
                 print(colored(f"Paciente terminó su tratamiento {paciente}","green"))
                 return 
             print(colored(f"Traslado hacia {entra_a}:paciente n°{paciente}","blue"))
@@ -396,12 +400,21 @@ class Hospital:
     def simular(self):
         while len(self.eventos) > 0:
             self.siguiente_evento()
-            self.decir_hora()
+            # self.decir_hora()
             self.ordenar_eventos()
+            self.obtener_estado()
         return 0
     def decir_hora(self):
         print(self.hora)
-
+    
+    def obtener_estado(self):
+        info_actual = {}
+        for sala in self.salas:
+            fila = len(self.salas[sala].fila)
+            en_atencion = len(self.salas[sala].pacientes)
+            info_actual[f"{sala}_fila"] = fila
+            info_actual[f"{sala}_atencion"] = en_atencion
+        self.datos[self.hora] = info_actual
 
 if __name__ == "__main__":
   generadora = GeneradoraPacientes()

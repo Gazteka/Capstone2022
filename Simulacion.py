@@ -113,6 +113,11 @@ muestra ={14570860:pacientes[14570860]}
 hospital = Hospital(dic_salas)
 hospital.recibir_pacientes(pacientes)
 hospital.simular()
+print(hospital.datos)
+
+# p = hospital.pacientes
+# for pat in p :
+#     print(p[pat].datos)
 # print(hospital.eventos)
 
 # print(hospital)
