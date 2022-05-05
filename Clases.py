@@ -228,10 +228,10 @@ class Paciente:
 
 class Hospital:
 
-    def __init__(self,salas):
+    def __init__(self, salas):
         self.salas = salas
 
-    def recibir_pacientes(self,pacientes):
+    def recibir_pacientes(self, pacientes):
         self.pacientes = pacientes
         self.eventos = []
         for case_id in pacientes:
@@ -243,7 +243,7 @@ class Hospital:
         self.ordenar_eventos()
 
     def ordenar_eventos(self):
-        self.eventos = sorted(self.eventos,key= lambda x :x["timestamp"])
+        self.eventos = sorted(self.eventos, key= lambda x :x["timestamp"])
         # print(self.eventos)
         pass
 
@@ -252,7 +252,7 @@ class Hospital:
         if next_evento["type"] == "Entrada":
             case_id = next_evento["paciente"]
             print(f"Paciente {case_id} ha llegado al hospital")
-            evento = self.salas["URG101_003"].llegada(self.pacientes[case_id],next_evento["timestamp"])
+            evento = self.salas["URG101_003"].llegada(self.pacientes[case_id], next_evento["timestamp"])
             self.eventos.append(evento)
         if next_evento["type"] == "Traslado":
             paciente = next_evento["paciente"]
