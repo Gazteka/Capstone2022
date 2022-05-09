@@ -180,7 +180,7 @@ class GeneradoraPacientes:
             self.pacientes.append(paciente)
              
             print(colored(f'Paciente ID: {paciente.id}','blue')) 
-            print(f'Llegada: {paciente.marca_tiempo_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
+            print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
             print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
             print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
         
@@ -346,7 +346,7 @@ class Paciente:
     def __init__(self, id, ruta, marca_tiempo_llegada, estadias):
         self.id = id
         self.ruta = ruta
-        self.marca_tiempo_llegada = marca_tiempo_llegada
+        self.hora_llegada = marca_tiempo_llegada
         self.estadias = estadias
         self.datos = []
     
