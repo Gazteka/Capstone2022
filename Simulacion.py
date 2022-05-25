@@ -104,16 +104,16 @@ dic_salas = cargar_distribuciones(dic_salas)
 
 
 muestra ={14570860:pacientes[14570860]}
-# for paciente in muestra:
-#     print(pacientes[paciente].estadias)
-#     print(pacientes[paciente].ruta)
-#     print(pacientes[paciente].hora_llegada)
+for paciente in muestra:
+    print(pacientes[paciente].estadias)
+    print(pacientes[paciente].ruta)
+    print(pacientes[paciente].hora_llegada)
 
 ## Cargamos el hospital
 hospital = Hospital(dic_salas)
 hospital.recibir_pacientes(pacientes)
 hospital.simular()
-print(hospital.datos)
+# print(hospital.datos)
 
 # p = hospital.pacientes
 # for pat in p :
