@@ -1,7 +1,5 @@
 from Herramientas import  * 
-from Clases import Sala,Paciente,Hospital
-# Importamos la seed
-np.random.seed(222)
+from Clases import Sala,Paciente,Hospital,GeneradoraPacientes,timer
 
 def preparar_pacientes(datos_pacientes):
     """Crea las clases de pacientes y las devuelve en formato clases
@@ -86,58 +84,37 @@ def cargar_recursos_sala():
     return dic_salas
 
 
+def generar_muestras_pacientes(n_seeds = 30,n_horas = 24*30):
+    muestras = {}
+    for i in range(n_seeds):
+        generadora = GeneradoraPacientes(seed = i)
+        pacientes = generadora.generar_pacientes(horas=n_horas, nombre_archivo_rutas='rutas.json')
+        pacientes = preparar_pacientes_generadora(pacientes)
+        muestras[i] = pacientes
+    return muestras
+@timer
+def realizar_simulacion_completa(dic_salas,muestras):
+    resultados = []
+    for seed in muestras:
+        hospital = Hospital(dic_salas)
+        hospital.recibir_pacientes(muestras[seed])
+        hospital.simular()
 
-dic_salas = cargar_recursos_sala()
-dataset,areas = preparar_datos(DIC_DATOS,AREAS)
-info_pacientes = dataset["info_pacientes"]
-llegadas = info_pacientes["Entrada"].sort_values()
-datos_pacientes = dataset["pacientes"]
-pacientes = preparar_pacientes(datos_pacientes)
-dic_salas = cargar_distribuciones(dic_salas)
-
-
-
-# for paciente in pacientes:
-#     print(pacientes[paciente].estadias)
-#     print(pacientes[paciente].ruta)
-#     print(pacientes[paciente].hora_llegada)
-
-
-muestra ={14570860:pacientes[14570860]}
-for paciente in muestra:
-    print(pacientes[paciente].estadias)
-    print(pacientes[paciente].ruta)
-    print(pacientes[paciente].hora_llegada)
-
-## Cargamos el hospital
-hospital = Hospital(dic_salas)
-hospital.recibir_pacientes(pacientes)
-hospital.simular()
-# print(hospital.datos)
-
-# p = hospital.pacientes
-# for pat in p :
-#     print(p[pat].datos)
-# print(hospital.eventos)
-
-# print(hospital)
+        p = hospital.pacientes
 
 
+        lead_time_promedio = obtener_lead_time_medio(p)
+        resultados.append(lead_time_promedio)
+    return resultados
 
-# for paciente in pacientes:
-#     sala.llegada(pacientes[paciente])
-#     sala.salida(pacientes[paciente])
-#     break
-
-
-#Contar con una decision sobre el modelo
-#analsis detallado de los datos
-#tener ya una metodologia del problema
-#Solucion computacional inicial
-#detallar las herramientas utilizadas (Incluyendo supuestos ) 
-# En base a la metodologia mostrar resultados obtenidos
-#mostrar una discusion más completa, explicar las razones de su seleccion
-# Dejar claramente especificado los puntos fuertes de la solucion propuesta
-# Plan de trabajo definido para las siguientes etapas
-
-
+if __name__ == "__main__":
+    dic_salas = cargar_recursos_sala()
+    dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+    # info_pacientes = dataset["info_pacientes"]
+    # llegadas = info_pacientes["Entrada"].sort_values()
+    # datos_pacientes = dataset["pacientes"]
+    # pacientes_originales = preparar_pacientes(datos_pacientes)
+    dic_salas = cargar_distribuciones(dic_salas)
+    muestras = generar_muestras_pacientes()
+    res = realizar_simulacion_completa(dic_salas,muestras)
+    print(res)
