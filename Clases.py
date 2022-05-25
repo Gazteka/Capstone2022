@@ -348,6 +348,7 @@ class Paciente:
         self.id = id
         self.ruta = ruta
         self.hora_llegada = hora_llegada
+
         self.estadias = estadias
         self.datos = []
     
