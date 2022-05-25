@@ -1,12 +1,12 @@
 from distutils.log import error
 from functools import total_ordering
 from Herramientas import *
+from collections import Counter
 import random
 import numpy as np
 import json
 import os
 import math
-import datetime
 from colorama import init
 from termcolor import colored
 import time
@@ -176,7 +176,7 @@ class GeneradoraPacientes:
             ruta_paciente = self.generar_ruta(nombre_archivo_rutas)
             estadias_paciente = self.asignar_estadias(ruta_paciente)
             
-            paciente = Paciente(id= id_paciente, ruta=ruta_paciente, marca_tiempo_llegada=timestamp, estadias=estadias_paciente)
+            paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=timestamp, estadias=estadias_paciente)
             self.pacientes.append(paciente)
              
             print(colored(f'Paciente ID: {paciente.id}','blue')) 
@@ -192,6 +192,7 @@ class GeneradoraPacientes:
         for paciente in self.pacientes:
             pacientes_dict[paciente.id] = paciente
         return pacientes_dict
+
 
 class Sala:
     def __init__(self,nombre):
@@ -343,10 +344,11 @@ class Sala:
 
         
 class Paciente:
-    def __init__(self, id, ruta, marca_tiempo_llegada, estadias):
+    def __init__(self, id, ruta, hora_llegada, estadias):
         self.id = id
         self.ruta = ruta
-        self.hora_llegada = marca_tiempo_llegada
+        self.hora_llegada = hora_llegada
+
         self.estadias = estadias
         self.datos = []
     
@@ -358,12 +360,13 @@ class Paciente:
 
 class Hospital:
 
-    def __init__(self, salas):
+    def __init__(self,salas):
         self.salas = salas
         self.hora = 0
         self.datos = {}
 
-    def recibir_pacientes(self, pacientes):
+    
+    def recibir_pacientes(self,pacientes):
         self.pacientes = pacientes
         self.eventos = []
         for case_id in pacientes:
@@ -375,10 +378,11 @@ class Hospital:
         self.ordenar_eventos()
 
     def ordenar_eventos(self):
-        self.eventos = sorted(self.eventos, key= lambda x :x["timestamp"])
+        self.eventos = sorted(self.eventos,key= lambda x :x["timestamp"])
         # print(self.eventos)
         pass
-
+    
+    
     def siguiente_evento(self):
         next_evento = self.eventos.pop(0)
         
@@ -386,15 +390,10 @@ class Hospital:
             self.hora = next_evento["timestamp"]
 
             case_id = next_evento["paciente"]
-
             print(colored(f"Paciente {case_id} ha llegado al hospital","green"))
             evento = self.salas["URG101_003"].llegada(self.pacientes[case_id],next_evento["timestamp"])
             if evento == {}:
                 return
-              
-            print(f"Paciente {case_id} ha llegado al hospital")
-            evento = self.salas["URG101_003"].llegada(self.pacientes[case_id], next_evento["timestamp"])
-
             self.eventos.append(evento)
         elif next_evento["type"] == "Traslado":
             self.hora = next_evento["timestamp"]
@@ -451,3 +450,4 @@ class Hospital:
 if __name__ == "__main__":
     generadora = GeneradoraPacientes()
     pacientes = generadora.generar_pacientes(horas=4368, nombre_archivo_rutas='rutas.json')
+    print(pacientes)
