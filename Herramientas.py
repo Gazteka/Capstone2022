@@ -182,7 +182,32 @@ def cargar_distribuciones(dic_salas):
             dic_salas[sala].distribucion = {}
     return dic_salas
 
+def preparar_pacientes_generadora(pacientes):
+    dic_pacientes = {}
+    for j  in range(len(pacientes)):
+        paciente = pacientes[j]
+        estadias_final = []
+        for i in range(len(paciente.estadias)-1):
+            estadia = abs(paciente.estadias[i])
+            entra = paciente.ruta[i]
+            sale = paciente.ruta[i+1]
+            info = (entra,estadia,sale)
+            estadias_final.append(info)
+        paciente.estadias = estadias_final
+        dic_pacientes[paciente.id] = paciente
+    return dic_pacientes
 
+
+def obtener_lead_time_medio(pacientes):
+    tiempos = []
+    for pat in pacientes :
+        datos = pacientes[pat].datos
+        diff = datos["salida"]-datos["llegada"]
+        diff = diff/datetime.timedelta(hours = 1)
+        tiempos.append(diff)
+    return np.mean(tiempos)
+
+    
 if __name__ == "__main__":
     DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
     print(cargar_distribuciones({}))
