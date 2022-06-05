@@ -142,7 +142,7 @@ class GeneradoraPacientes:
                 estadia = 0
             
             else:
-                print(parada)
+                #print(parada)
                 raise Exception('Distribución no identificada para las estadias')
 
             estadias.append(estadia)
@@ -179,10 +179,10 @@ class GeneradoraPacientes:
             paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=timestamp, estadias=estadias_paciente)
             self.pacientes.append(paciente)
              
-            print(colored(f'Paciente ID: {paciente.id}','blue')) 
-            print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
-            print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
-            print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
+            #print(colored(f'Paciente ID: {paciente.id}','blue')) 
+            #print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
+            #print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
+            #print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
         
         return np.array(self.pacientes)
 

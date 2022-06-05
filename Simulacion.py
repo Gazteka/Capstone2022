@@ -120,9 +120,10 @@ def vector_cromosoma(cromosoma):
             recurso = dict.fromkeys(range(1,cromosoma[7]+1),False)
             diccionario_salas[key].recursos["camas"] = recurso
 
-        #elif key == "OPR101_033":
-        #    recurso = dict.fromkeys(range(1,cromosoma[8]+1),False)
-        #    diccionario_salas[key].recursos["disponibilidad"] = recurso
+        elif key == "OPR101_011":
+            if cromosoma[8] == 1: 
+                diccionario_salas[key].recursos["hora_inicio"] = 0
+                diccionario_salas[key].recursos["hora_limite"] = 24
 
     return diccionario_salas
         
@@ -151,8 +152,9 @@ def realizar_simulacion_completa(dic_salas,muestras):
     return resultados
 
 if __name__ == "__main__":
-    cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14 ]#,0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
-    dic_salas = vector_cromosoma(cromosoma_inicial)
+    cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14, 0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
+    cr_p = [5, 8, 14, 6, 12, 9, 12, 15, 1]
+    dic_salas = vector_cromosoma(cr_p)
     dataset,areas = preparar_datos(DIC_DATOS,AREAS)
     # info_pacientes = dataset["info_pacientes"]
     # llegadas = info_pacientes["Entrada"].sort_values()
