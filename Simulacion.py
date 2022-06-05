@@ -83,6 +83,49 @@ def cargar_recursos_sala():
         dic_salas["End"] = Sala("End")
     return dic_salas
 
+def vector_cromosoma(cromosoma):
+    diccionario_salas = cargar_recursos_sala()
+
+    for key in diccionario_salas:
+        #print(diccionario_salas[key].recursos)
+        if key == "URG101_003":
+            recurso = dict.fromkeys(range(1,cromosoma[0]+1),False)
+            diccionario_salas[key].recursos["box_atencion"] = recurso
+
+        elif key == "DIV101_703":
+            recurso = dict.fromkeys(range(1,cromosoma[1]+1),False)
+            diccionario_salas[key].recursos["box_atencion"] = recurso
+
+        elif key == "DIV101_603":
+            recurso = dict.fromkeys(range(1,cromosoma[2]+1),False)
+            diccionario_salas[key].recursos["camas"] = recurso
+        
+        elif key == "DIV101_604":
+            recurso = dict.fromkeys(range(1,cromosoma[3]+1),False)
+            diccionario_salas[key].recursos["camas"] = recurso
+
+        elif key == "DIV102_203":
+            recurso = dict.fromkeys(range(1,cromosoma[4]+1),False)
+            diccionario_salas[key].recursos["camas"] = recurso
+        
+        elif key == "DIV103_107":
+            recurso = dict.fromkeys(range(1,cromosoma[5]+1),False)
+            diccionario_salas[key].recursos["camas"] = recurso
+        
+        elif key == "DIV103_204":
+            recurso = dict.fromkeys(range(1,cromosoma[6]+1),False)
+            diccionario_salas[key].recursos["camas"] = recurso
+        
+        elif key == "DIV104_602":
+            recurso = dict.fromkeys(range(1,cromosoma[7]+1),False)
+            diccionario_salas[key].recursos["camas"] = recurso
+
+        #elif key == "OPR101_033":
+        #    recurso = dict.fromkeys(range(1,cromosoma[8]+1),False)
+        #    diccionario_salas[key].recursos["disponibilidad"] = recurso
+
+    return diccionario_salas
+        
 
 def generar_muestras_pacientes(n_seeds = 30,n_horas = 24*30):
     muestras = {}
@@ -108,7 +151,8 @@ def realizar_simulacion_completa(dic_salas,muestras):
     return resultados
 
 if __name__ == "__main__":
-    dic_salas = cargar_recursos_sala()
+    cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14 ]#,0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
+    dic_salas = vector_cromosoma(cromosoma_inicial)
     dataset,areas = preparar_datos(DIC_DATOS,AREAS)
     # info_pacientes = dataset["info_pacientes"]
     # llegadas = info_pacientes["Entrada"].sort_values()
@@ -118,3 +162,4 @@ if __name__ == "__main__":
     muestras = generar_muestras_pacientes()
     res = realizar_simulacion_completa(dic_salas,muestras)
     print(res)
+    
