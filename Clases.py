@@ -10,7 +10,7 @@ import math
 from colorama import init
 from termcolor import colored
 import time
-import scipy
+from scipy import stats
 
 def timer(funcion):
     """
@@ -101,19 +101,34 @@ class GeneradoraPacientes:
             location = params['loc']
             scale = params['scale']
 
-            valor_aleotorio = (np.random.beta(a=param_a, b=param_b) - location) / scale
-        
+            iterar = True
+            while iterar:
+                valor_aleatorio = stats.beta.rvs(a=param_a, b=param_b, loc=location, scale=scale)
+                if valor_aleatorio >= 0:
+                    iterar = False
+
+            print(valor_aleatorio)
+            valor_aleatorio = (np.random.beta(a=param_a, b=param_b) - location) / scale
+            print(valor_aleatorio)
+
         elif distribucion == 'lognorm':
             shape = params['s']
             location = params['loc']
             scale = params['scale']
-                        
-            valor_aleotorio = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+            
+            iterar = True
+            while iterar:
+                valor_aleatorio = stats.lognorm.rvs(s = shape, loc=location, scale=scale)
+                if valor_aleatorio >= 0:
+                    iterar = False
+
+
+            valor_aleatorio = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
 
         else:
             raise Exception('Distribución no identificada')
         
-        return valor_aleotorio
+        return valor_aleatorio
 
     def asignar_estadias(self, ruta):
         estadias = []
@@ -455,7 +470,9 @@ class Hospital:
 if __name__ == "__main__":
     generadora = GeneradoraPacientes()
     #pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')
-    ruta = generadora.generar_ruta(nombre_archivo_rutas='rutas.json')
-    for i in range(10):
+    
+    for i in range(1):
+        ruta = generadora.generar_ruta(nombre_archivo_rutas='rutas.json')
         print(generadora.asignar_estadias(ruta))
+        print(f'Ruta: {ruta}')
 
