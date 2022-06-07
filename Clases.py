@@ -10,6 +10,7 @@ import math
 from colorama import init
 from termcolor import colored
 import time
+import scipy
 
 def timer(funcion):
     """
@@ -453,5 +454,8 @@ class Hospital:
 
 if __name__ == "__main__":
     generadora = GeneradoraPacientes()
-    pacientes = generadora.generar_pacientes(horas=4368, nombre_archivo_rutas='rutas.json')
-    print(pacientes)
+    #pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')
+    ruta = generadora.generar_ruta(nombre_archivo_rutas='rutas.json')
+    for i in range(10):
+        print(generadora.asignar_estadias(ruta))
+
