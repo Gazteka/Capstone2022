@@ -107,14 +107,48 @@ def realizar_simulacion_completa(dic_salas,muestras):
         resultados.append(lead_time_promedio)
     return resultados
 
+
+
+def obtener_intervalo_confianza(resultados,alpha = 0.99):
+    n = len(resultados)
+    media_muestral = np.mean(resultados)
+    sigma = np.std(resultados)
+    error = sigma/np.sqrt(n)
+    if alpha == 0.99:
+        factor = 2.57
+    
+    cota_inferior = media_muestral - factor*error
+    cota_sup = media_muestral + factor*error
+    return [cota_sup,cota_inferior]
+
+def calcular_funcion_objetivo(intervalo,alpha = 1,beta = 1,cromosoma = [3,5,12,5,12,8,10,14,0]):
+
+    cromosoma_inicial = np.array([3,5,12,5,12,8,10,14,0])
+    costos_operativos = np.array([150,450,250,250,250,250,250,250,800])
+    costos_inversion = np.array([0,12500,3500,3500,3500,3500,3500,3500,25000])
+    extras = cromosoma - cromosoma_inicial
+    ci_max = 50000
+    co_max = 4500
+    co = np.dot(extras,costos_operativos)
+    ci = np.dot(extras,costos_inversion)
+    ci_real = np.max([0,ci-ci_max])
+    co_real = np.max([0,co-co_max])
+    resultado = intervalo + alpha*ci_real +beta*co_real
+
+    return resultado
+    
 if __name__ == "__main__":
-    dic_salas = cargar_recursos_sala()
-    dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+    # dic_salas = cargar_recursos_sala()
+    # dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+
     # info_pacientes = dataset["info_pacientes"]
     # llegadas = info_pacientes["Entrada"].sort_values()
     # datos_pacientes = dataset["pacientes"]
     # pacientes_originales = preparar_pacientes(datos_pacientes)
-    dic_salas = cargar_distribuciones(dic_salas)
-    muestras = generar_muestras_pacientes()
-    res = realizar_simulacion_completa(dic_salas,muestras)
-    print(res)
+
+
+    # dic_salas = cargar_distribuciones(dic_salas)
+    # muestras = generar_muestras_pacientes()
+    # res = realizar_simulacion_completa(dic_salas,muestras)
+    # print(obtener_intervalo_confianza(res))
+    print(calcular_funcion_objetivo(0))
