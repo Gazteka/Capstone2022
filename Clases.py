@@ -107,10 +107,6 @@ class GeneradoraPacientes:
                 if valor_aleatorio >= 0:
                     iterar = False
 
-            print(valor_aleatorio)
-            valor_aleatorio = (np.random.beta(a=param_a, b=param_b) - location) / scale
-            print(valor_aleatorio)
-
         elif distribucion == 'lognorm':
             shape = params['s']
             location = params['loc']
@@ -121,9 +117,6 @@ class GeneradoraPacientes:
                 valor_aleatorio = stats.lognorm.rvs(s = shape, loc=location, scale=scale)
                 if valor_aleatorio >= 0:
                     iterar = False
-
-
-            valor_aleatorio = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
 
         else:
             raise Exception('Distribución no identificada')
@@ -184,7 +177,13 @@ class GeneradoraPacientes:
         timestamp_termino = timestamp_inicio + datetime.timedelta(hours=horas)
 
         while timestamp < timestamp_termino:
-            tiempo_entre_llegadas = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale  # REVISAR PARAMETROS   
+            
+            iterar = True
+            while iterar:
+                tiempo_entre_llegadas = stats.lognorm.rvs(s = shape, loc=location, scale=scale)  
+                if tiempo_entre_llegadas >= 0 and tiempo_entre_llegadas <= 24:
+                    iterar = False
+
             timestamp += datetime.timedelta(hours=tiempo_entre_llegadas)
             n_pacientes += 1 
             
@@ -469,10 +468,4 @@ class Hospital:
 
 if __name__ == "__main__":
     generadora = GeneradoraPacientes()
-    #pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')
-    
-    for i in range(1):
-        ruta = generadora.generar_ruta(nombre_archivo_rutas='rutas.json')
-        print(generadora.asignar_estadias(ruta))
-        print(f'Ruta: {ruta}')
-
+    pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')
