@@ -10,6 +10,7 @@ import math
 from colorama import init
 from termcolor import colored
 import time
+from scipy import stats
 
 def timer(funcion):
     """
@@ -100,19 +101,27 @@ class GeneradoraPacientes:
             location = params['loc']
             scale = params['scale']
 
-            valor_aleotorio = (np.random.beta(a=param_a, b=param_b) - location) / scale
-        
+            iterar = True
+            while iterar:
+                valor_aleatorio = stats.beta.rvs(a=param_a, b=param_b, loc=location, scale=scale)
+                if valor_aleatorio >= 0:
+                    iterar = False
+
         elif distribucion == 'lognorm':
             shape = params['s']
             location = params['loc']
             scale = params['scale']
-                        
-            valor_aleotorio = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale
+            
+            iterar = True
+            while iterar:
+                valor_aleatorio = stats.lognorm.rvs(s = shape, loc=location, scale=scale)
+                if valor_aleatorio >= 0:
+                    iterar = False
 
         else:
             raise Exception('Distribución no identificada')
         
-        return valor_aleotorio
+        return valor_aleatorio
 
     def asignar_estadias(self, ruta):
         estadias = []
@@ -142,7 +151,7 @@ class GeneradoraPacientes:
                 estadia = 0
             
             else:
-                #print(parada)
+                print(parada)
                 raise Exception('Distribución no identificada para las estadias')
 
             estadias.append(estadia)
@@ -168,7 +177,13 @@ class GeneradoraPacientes:
         timestamp_termino = timestamp_inicio + datetime.timedelta(hours=horas)
 
         while timestamp < timestamp_termino:
-            tiempo_entre_llegadas = (np.random.lognormal(mean=math.log(scale), sigma=shape) - location) / scale  # REVISAR PARAMETROS   
+            
+            iterar = True
+            while iterar:
+                tiempo_entre_llegadas = stats.lognorm.rvs(s = shape, loc=location, scale=scale)  
+                if tiempo_entre_llegadas >= 0 and tiempo_entre_llegadas <= 24:
+                    iterar = False
+
             timestamp += datetime.timedelta(hours=tiempo_entre_llegadas)
             n_pacientes += 1 
             
@@ -179,10 +194,10 @@ class GeneradoraPacientes:
             paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=timestamp, estadias=estadias_paciente)
             self.pacientes.append(paciente)
              
-            #print(colored(f'Paciente ID: {paciente.id}','blue')) 
-            #print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
-            #print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
-            #print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
+            # print(colored(f'Paciente ID: {paciente.id}','blue')) 
+            # print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
+            # print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
+            # print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
         
         return np.array(self.pacientes)
 

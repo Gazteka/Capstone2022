@@ -136,7 +136,7 @@ def generar_muestras_pacientes(n_seeds = 30,n_horas = 24*30):
         pacientes = preparar_pacientes_generadora(pacientes)
         muestras[i] = pacientes
     return muestras
-@timer
+# @timer
 def realizar_simulacion_completa(dic_salas,muestras):
     resultados = []
     for seed in muestras:
@@ -151,17 +151,50 @@ def realizar_simulacion_completa(dic_salas,muestras):
         resultados.append(lead_time_promedio)
     return resultados
 
+def obtener_intervalo_confianza(resultados,alpha = 0.99):
+    n = len(resultados)
+    media_muestral = np.mean(resultados)
+    sigma = np.std(resultados)
+    error = sigma/np.sqrt(n)
+    if alpha == 0.99:
+        factor = 2.57
+    
+    cota_inferior = media_muestral - factor*error
+    cota_sup = media_muestral + factor*error
+    return [cota_inferior,cota_sup]
+def calcular_funcion_aptitud(cromosoma = [3,5,12,5,12,8,10,14,0], alpha = 0.01, beta = 0.01 ): 
+    #f(x,y,z_m,) = lt_p + pc + alhpa*max{0,CI-M$50.000} + beta*max{0,CO-M$4.500}
+    cromosoma_inicial = np.array([3,5,12,5,12,8,10,14,0])
+    costos_operativos = np.array([150,450,250,250,250,250,250,250,800])
+    costos_inversion = np.array([0,12500,3500,3500,3500,3500,3500,3500,25000])
+    extras = cromosoma - cromosoma_inicial
+    ci_max = 50000
+    co_max = 4500
+    co = np.dot(extras,costos_operativos)
+    ci = np.dot(extras,costos_inversion)
+    ci_real = np.max([0,ci-ci_max])
+    co_real = np.max([0,co-co_max])
+    return ci_real +co_real
+
 if __name__ == "__main__":
     cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14, 0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
     cr_p = [5, 8, 14, 6, 12, 9, 12, 15, 1]
-    dic_salas = vector_cromosoma(cr_p)
-    dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+    cr_best = [3, 8, 12, 5, 12, 8, 12, 14, 0]
+    print(calcular_funcion_aptitud(cromosoma = cr_best))
+    # dic_salas = vector_cromosoma(cr_best)
+    # dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+
+
     # info_pacientes = dataset["info_pacientes"]
     # llegadas = info_pacientes["Entrada"].sort_values()
     # datos_pacientes = dataset["pacientes"]
     # pacientes_originales = preparar_pacientes(datos_pacientes)
-    dic_salas = cargar_distribuciones(dic_salas)
-    muestras = generar_muestras_pacientes()
-    res = realizar_simulacion_completa(dic_salas,muestras)
-    print(res)
+
+
+    # dic_salas = cargar_distribuciones(dic_salas)
+    # muestras = generar_muestras_pacientes()
+    # res = realizar_simulacion_completa(dic_salas,muestras)
+    # print(obtener_intervalo_confianza(res))
+
+    
     

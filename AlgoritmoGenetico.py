@@ -1,13 +1,14 @@
 import random
 import numpy as np
-import pygad
-from Simulacion import realizar_simulacion_completa, generar_muestras_pacientes, vector_cromosoma,timer
+# import pygad
+from Simulacion import obtener_intervalo_confianza, realizar_simulacion_completa, generar_muestras_pacientes, vector_cromosoma,timer
 import time
 import copy
-random.seed(2)
+random.seed(333)
+import json
 
 class AlgoritmoGenetico: 
-    def __init__(self, cromosoma_inicial):
+    def __init__(self, cromosoma_inicial,n_iter = 5):
         self.cromosoma_inicial = cromosoma_inicial
         self.crom_sup = [5, 8, 15, 6, 15, 10, 13, 18, 1]
         dic_genes = dict.fromkeys(range(0,9))
@@ -22,7 +23,6 @@ class AlgoritmoGenetico:
         dic_genes[8] = (0, 1)
         self.dic_genes = dic_genes
         self.muestras_pacientes = generar_muestras_pacientes()
-        self.m = self.muestras_pacientes.copy()
 
     def generar_poblacion(self):  #Genera la poblacion inicial, retorna lista de cromosomas 
         tamaño_poblacion = 15 
@@ -37,7 +37,7 @@ class AlgoritmoGenetico:
                 poblacion_inicial.append(vector_cromosoma)
         return poblacion_inicial
         
-    def calcular_funcion_aptitud(self, intervalo, alpha = 0.01, beta = 0.01, cromosoma = [3,5,12,5,12,8,10,14,0]): 
+    def calcular_funcion_aptitud(self, intervalo, alpha = 0.1, beta = 0.01, cromosoma = [3,5,12,5,12,8,10,14,0]): 
         #f(x,y,z_m,) = lt_p + pc + alhpa*max{0,CI-M$50.000} + beta*max{0,CO-M$4.500}
         cromosoma_inicial = np.array([3,5,12,5,12,8,10,14,0])
         costos_operativos = np.array([150,450,250,250,250,250,250,250,800])
@@ -52,10 +52,10 @@ class AlgoritmoGenetico:
         resultado = intervalo + alpha*ci_real +beta*co_real
         return resultado
 
-    def crossover(self, pob_actual, resultados): #se aplica el crossover, retorna el hijo 
-        sel1 = pob_actual[0]
-        sel2 = pob_actual[1]
-        sel3 = pob_actual[2]
+    def crossover(self, pob_actual): #se aplica el crossover, retorna el hijo 
+        sel1 = pob_actual[0][0]
+        sel2 = pob_actual[1][0]
+        sel3 = pob_actual[2][0]
         n_hijos = 6 
 
         h1 = sel1[:4] + sel2[4:]
@@ -66,6 +66,17 @@ class AlgoritmoGenetico:
         h6 = sel3[:4] + sel2[4:]
 
         pob_siguiente = [h1, h2, h3, h4, h5, h6, sel1, sel2, sel3]
+        for i in range(len(pob_siguiente)):
+            hijo = pob_siguiente[i]
+            hijo_mutado = self.mutacion(hijo)
+            if hijo_mutado in pob_siguiente:
+                if str(hijo_mutado) not in self.lista_tabu.keys():
+                # print(pob_siguiente.index(hijo_mutado))
+                    pob_siguiente.append(hijo_mutado)
+        
+        # for i in range(len(pob_siguiente)):
+        #     print(i,pob_siguiente[i])
+
         return pob_siguiente
 
         # while sel2 == sel1:
@@ -80,36 +91,67 @@ class AlgoritmoGenetico:
         # print(papa_1)
 
 
-    def mutacion(self, hijo): #calcular la probabilidad (p) de mutacion de este hijo. si p<c: terminar mutacion
+    def mutacion(self, hijo):
+         #calcular la probabilidad (p) de mutacion de este hijo. si p<c: terminar mutacion
+        lugar = random.randint(0,8)
+        extremos = self.dic_genes[lugar]
+        # print(lugar,extremos)
+        valor_actualizar = random.randint(extremos[0],extremos[1])
+        hijo[lugar] = valor_actualizar
+        return hijo 
         pass 
 
     
 
     @timer
-    def iteracion_algoritmo(self, n = 5):
+    def iteracion_algoritmo(self, n = 50):
         n = n#num iteraciones total
-        iter_realizadas = 0
-        fo_evaluadas = list()
-        while iter_realizadas < n: 
-            if iter_realizadas == 0:
-                pob_actual = self.generar_poblacion()
-            for cromosoma in pob_actual:
-                dic_salas = vector_cromosoma(cromosoma)
-                muestras = generar_muestras_pacientes()
-                lt_crom = realizar_simulacion_completa(dic_salas,muestras)
-                lt_i = np.mean(lt_crom)# Esto despues sera el intervalo de confianza
-                fo = self.calcular_funcion_aptitud(lt_i,cromosoma = cromosoma)
-                fo_evaluadas.append(fo)           
-            fo_evaluadas.sort(reverse=False)
-            pob_actual = self.crossover(pob_actual, fo_evaluadas)
-            print("-"*10)
-            print("Minimo",np.min(fo_evaluadas))
-            print("Mean",np.mean(fo_evaluadas))
-            print("Max",np.max(fo_evaluadas))
+        # n = self.n_iter
+        with open("resultados_algoritmo.csv","a") as file:
+            iter_realizadas = 0
+            fo_evaluadas = list()
+            self.lista_tabu = {}
+            dic_resultados = {}
+            while iter_realizadas < n: 
+                if iter_realizadas == 0:
+                    pob_actual = self.generar_poblacion()
+                for cromosoma in pob_actual:
+                    dic_salas = vector_cromosoma(cromosoma)
+                    muestras = generar_muestras_pacientes()
+                    if str(cromosoma) in self.lista_tabu.keys():
+                        lt_crom = self.lista_tabu[str(cromosoma)]
+                        # print(cromosoma,"in lista tabu")
+                        
+                    else:
 
-            iter_realizadas += 1
+                        lt_crom = realizar_simulacion_completa(dic_salas,muestras)
+                        self.lista_tabu[str(cromosoma)] = lt_crom
+                    lt_i = obtener_intervalo_confianza(lt_crom)[1]# Esto despues sera el intervalo de confianza
+                    fo = self.calcular_funcion_aptitud(lt_i,cromosoma = cromosoma)
+                    dic_resultados[str(cromosoma)] = fo
+                    # print(fo)
+                    fo_evaluadas.append((cromosoma,fo))     
+                fo_evaluadas.sort(key = lambda x:x[1],reverse = False)
+                # print(fo_evaluadas)
+                pob_actual = self.crossover(fo_evaluadas)
+                fo_evaluadas_resultados = [duo[1] for duo in fo_evaluadas]
+                fo_evaluadas_resultados = sorted(fo_evaluadas_resultados,reverse = False)[:20]
+                mean = np.mean(fo_evaluadas_resultados)
+                min = np.min(fo_evaluadas_resultados)
+                max = np.max(fo_evaluadas_resultados)
+                best= 0
+                for key in dic_resultados:
+                    if dic_resultados[key] == min:
+                        best= key
+                line = f"{iter_realizadas};{min};{mean};{max};{best};{pob_actual} \n"
+                file.write(line)
+                print("N° de iteraciones",iter_realizadas)
+                print("Minimo",np.min(fo_evaluadas_resultados))
+                print("Mean",np.mean(fo_evaluadas_resultados))
+                print("Max",np.max(fo_evaluadas_resultados))
 
-
+                iter_realizadas += 1
+            # print(lista_tabu)
 
         
             
@@ -120,7 +162,7 @@ class AlgoritmoGenetico:
 if __name__ == "__main__":
     #instancia = pygad.GA()
     #instancia.run()
-    cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14 ]#,0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
+    cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14 ,0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
     res_inicial = [44200.96030345001,
                         44000.93867937252, 
                         37000.93199233972, 
@@ -139,7 +181,7 @@ if __name__ == "__main__":
 
     a = AlgoritmoGenetico(cromosoma_inicial)
     a.iteracion_algoritmo()
-    #pob_actual = a.generar_poblacion()
-    #a.crossover(pob_actual, res_inicial)
+    # pob_actual = a.generar_poblacion()
+    # a.crossover(pob_actual, res_inicial)
     
     
