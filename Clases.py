@@ -95,6 +95,9 @@ class GeneradoraPacientes:
         Recibe un string que es el nombre de la distribución de probabilidad y un diccionario con sus parámetros correspondientes
         Retorna el valor aleatorio correspondiente
         '''
+
+        np.random.seed(self.seed)
+        
         if distribucion == 'beta':
             param_a = params['a']
             param_b = params['b']
