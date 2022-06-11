@@ -95,6 +95,9 @@ class GeneradoraPacientes:
         Recibe un string que es el nombre de la distribución de probabilidad y un diccionario con sus parámetros correspondientes
         Retorna el valor aleatorio correspondiente
         '''
+
+        np.random.seed(self.seed)
+        
         if distribucion == 'beta':
             param_a = params['a']
             param_b = params['b']
@@ -468,5 +471,4 @@ class Hospital:
 
 if __name__ == "__main__":
     generadora = GeneradoraPacientes()
-    pacientes = generadora.generar_pacientes(horas=4368, nombre_archivo_rutas='rutas.json')
-    print(pacientes)
+    pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')
