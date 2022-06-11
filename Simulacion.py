@@ -1,7 +1,5 @@
 from Herramientas import  * 
-from Clases import Sala,Paciente,Hospital
-# Importamos la seed
-np.random.seed(222)
+from Clases import Sala,Paciente,Hospital,GeneradoraPacientes,timer
 
 def preparar_pacientes(datos_pacientes):
     """Crea las clases de pacientes y las devuelve en formato clases
@@ -86,58 +84,71 @@ def cargar_recursos_sala():
     return dic_salas
 
 
+def generar_muestras_pacientes(n_seeds = 30,n_horas = 24*30):
+    muestras = {}
+    for i in range(n_seeds):
+        generadora = GeneradoraPacientes(seed = i)
+        pacientes = generadora.generar_pacientes(horas=n_horas, nombre_archivo_rutas='rutas.json')
+        pacientes = preparar_pacientes_generadora(pacientes)
+        muestras[i] = pacientes
+    return muestras
+@timer
+def realizar_simulacion_completa(dic_salas,muestras):
+    resultados = []
+    for seed in muestras:
+        hospital = Hospital(dic_salas)
+        hospital.recibir_pacientes(muestras[seed])
+        hospital.simular()
 
-dic_salas = cargar_recursos_sala()
-dataset,areas = preparar_datos(DIC_DATOS,AREAS)
-info_pacientes = dataset["info_pacientes"]
-llegadas = info_pacientes["Entrada"].sort_values()
-datos_pacientes = dataset["pacientes"]
-pacientes = preparar_pacientes(datos_pacientes)
-dic_salas = cargar_distribuciones(dic_salas)
+        p = hospital.pacientes
 
 
-
-# for paciente in pacientes:
-#     print(pacientes[paciente].estadias)
-#     print(pacientes[paciente].ruta)
-#     print(pacientes[paciente].hora_llegada)
-
-
-muestra ={14570860:pacientes[14570860]}
-# for paciente in muestra:
-#     print(pacientes[paciente].estadias)
-#     print(pacientes[paciente].ruta)
-#     print(pacientes[paciente].hora_llegada)
-
-## Cargamos el hospital
-hospital = Hospital(dic_salas)
-hospital.recibir_pacientes(pacientes)
-hospital.simular()
-print(hospital.datos)
-
-# p = hospital.pacientes
-# for pat in p :
-#     print(p[pat].datos)
-# print(hospital.eventos)
-
-# print(hospital)
+        lead_time_promedio = obtener_lead_time_medio(p)
+        resultados.append(lead_time_promedio)
+    return resultados
 
 
 
-# for paciente in pacientes:
-#     sala.llegada(pacientes[paciente])
-#     sala.salida(pacientes[paciente])
-#     break
+def obtener_intervalo_confianza(resultados,alpha = 0.99):
+    n = len(resultados)
+    media_muestral = np.mean(resultados)
+    sigma = np.std(resultados)
+    error = sigma/np.sqrt(n)
+    if alpha == 0.99:
+        factor = 2.57
+    
+    cota_inferior = media_muestral - factor*error
+    cota_sup = media_muestral + factor*error
+    return [cota_sup,cota_inferior]
+
+def calcular_funcion_objetivo(intervalo,alpha = 1,beta = 1,cromosoma = [3,5,12,5,12,8,10,14,0]):
+
+    cromosoma_inicial = np.array([3,5,12,5,12,8,10,14,0])
+    costos_operativos = np.array([150,450,250,250,250,250,250,250,800])
+    costos_inversion = np.array([0,12500,3500,3500,3500,3500,3500,3500,25000])
+    extras = cromosoma - cromosoma_inicial
+    ci_max = 50000
+    co_max = 4500
+    co = np.dot(extras,costos_operativos)
+    ci = np.dot(extras,costos_inversion)
+    ci_real = np.max([0,ci-ci_max])
+    co_real = np.max([0,co-co_max])
+    resultado = intervalo + alpha*ci_real +beta*co_real
+
+    return resultado
+    
+if __name__ == "__main__":
+    # dic_salas = cargar_recursos_sala()
+    # dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+
+    # info_pacientes = dataset["info_pacientes"]
+    # llegadas = info_pacientes["Entrada"].sort_values()
+    # datos_pacientes = dataset["pacientes"]
+    # pacientes_originales = preparar_pacientes(datos_pacientes)
 
 
-#Contar con una decision sobre el modelo
-#analsis detallado de los datos
-#tener ya una metodologia del problema
-#Solucion computacional inicial
-#detallar las herramientas utilizadas (Incluyendo supuestos ) 
-# En base a la metodologia mostrar resultados obtenidos
-#mostrar una discusion más completa, explicar las razones de su seleccion
-# Dejar claramente especificado los puntos fuertes de la solucion propuesta
-# Plan de trabajo definido para las siguientes etapas
-
-
+    # dic_salas = cargar_distribuciones(dic_salas)
+    # muestras = generar_muestras_pacientes()
+    # res = realizar_simulacion_completa(dic_salas,muestras)
+    # print(obtener_intervalo_confianza(res))
+    print(calcular_funcion_objetivo(0))
