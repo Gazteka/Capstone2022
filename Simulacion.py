@@ -159,6 +159,12 @@ def obtener_intervalo_confianza(resultados,alpha = 0.99):
     error = sigma/np.sqrt(n)
     if alpha == 0.99:
         factor = 2.57
+    elif alpha == 0.975:
+        factor = 2.228
+    elif alpha == 0.95:
+        factor = 1.812
+    elif alpha == 0.9:
+        factor = 1.372
     
     cota_inferior = media_muestral - factor*error
     cota_sup = media_muestral + factor*error
@@ -184,18 +190,19 @@ def calcular_funcion_aptitud(cromosoma = [3,5,12,5,12,8,10,14,0], alpha = 0.01, 
 if __name__ == "__main__":
     cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14, 0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
     cr_p = [5, 8, 14, 6, 12, 9, 12, 15, 1]
-    cr_best = [3, 8, 12, 5, 12, 8, 12, 14, 0]
+    cr_best = [5, 8, 15, 6, 15, 10, 13, 18, 1]
+                            # Sin presupuesto --> [3, 5, 12, 5, 12, 8, 10, 14, 0]
+                            # Max presupuesto --> [5, 8, 15, 6, 15, 10, 13, 18, 1]
     print(calcular_funcion_aptitud(cromosoma = cr_best))
-    # dic_salas = vector_cromosoma(cr_best)
-    # dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+    dic_salas = vector_cromosoma(cr_best)
+    dataset,areas = preparar_datos(DIC_DATOS,AREAS)
 
-    # info_pacientes = dataset["info_pacientes"]
-    # llegadas = info_pacientes["Entrada"].sort_values()
-    # datos_pacientes = dataset["pacientes"]
-    # pacientes_originales = preparar_pacientes(datos_pacientes)
+    #info_pacientes = dataset["info_pacientes"]
+    #llegadas = info_pacientes["Entrada"].sort_values()
+    #datos_pacientes = dataset["pacientes"]
+    #pacientes_originales = preparar_pacientes(datos_pacientes)
+    #dic_salas = cargar_distribuciones(dic_salas)
 
-
-    # dic_salas = cargar_distribuciones(dic_salas)
-    # muestras = generar_muestras_pacientes()
-    # res = realizar_simulacion_completa(dic_salas,muestras)
-    # print(obtener_intervalo_confianza(res))
+    muestras = generar_muestras_pacientes(n_seeds=100, n_horas=24*30)
+    res = realizar_simulacion_completa(dic_salas,muestras)
+    print(obtener_intervalo_confianza(res, alpha=0.95))
