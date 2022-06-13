@@ -1,5 +1,6 @@
 from Herramientas import  * 
 from Clases import Sala,Paciente,Hospital,GeneradoraPacientes,timer
+import plotly.express as px
 
 def preparar_pacientes(datos_pacientes):
     """Crea las clases de pacientes y las devuelve en formato clases
@@ -220,16 +221,13 @@ if __name__ == "__main__":
     
     #import plotly.express as px
 
-    promedios = list()
-    semanas = list(range(1,4+1))
+    promedios = np.array([])
+    semanas = list(range(1,12+1))
     for semana in semanas:
-        print(semana)
-        muestras = generar_muestras_pacientes(n_seeds=60, n_horas=24*7*semana)
+        print(f'Semana: {semana}')
+        muestras = generar_muestras_pacientes(n_seeds=30, n_horas=24* 7 * semana)
         res = realizar_simulacion_completa(dic_salas,muestras)
-        promedios.append(np.mean(res))
-    print(promedios)
-
-    import plotly.express as px
+        promedios = np.append(promedios, np.mean(res))
 
     data = {'semanas': semanas, 'lead_time_esperado': promedios}
     df = pd.DataFrame(data)
