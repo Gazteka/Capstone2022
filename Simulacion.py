@@ -220,7 +220,18 @@ if __name__ == "__main__":
     
     #import plotly.express as px
 
-    #data = {'semanas': semanas, 'lead_time_esperado': promedios}
-    #df = pd.DataFrame(data)
-    #fig = px.bar(df, x="semanas", y="lead_time_esperado")
-    #fig.show()
+    promedios = list()
+    semanas = list(range(1,24+1))
+    for semana in semanas:
+        print(semana)
+        muestras = generar_muestras_pacientes(n_seeds=60, n_horas=24*7*semana)
+        res = realizar_simulacion_completa(dic_salas,muestras)
+        promedios.append(np.mean(res))
+    print(promedios)
+
+    import plotly.express as px
+
+    data = {'semanas': semanas, 'lead_time_esperado': promedios}
+    df = pd.DataFrame(data)
+    fig = px.bar(df, x="semanas", y="lead_time_esperado")
+    fig.show()
