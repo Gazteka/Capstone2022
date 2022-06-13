@@ -190,10 +190,10 @@ def calcular_funcion_aptitud(cromosoma = [3,5,12,5,12,8,10,14,0], alpha = 0.01, 
 if __name__ == "__main__":
     cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14, 0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
     cr_p = [5, 8, 14, 6, 12, 9, 12, 15, 1]
-    cr_best = [5, 8, 15, 6, 15, 10, 13, 18, 1]
+    cr_best = [3, 7, 13, 6, 15, 10, 10, 14, 0]
+
                             # Sin presupuesto --> [3, 5, 12, 5, 12, 8, 10, 14, 0]
                             # Max presupuesto --> [5, 8, 15, 6, 15, 10, 13, 18, 1]
-    print(calcular_funcion_aptitud(cromosoma = cr_best))
     dic_salas = vector_cromosoma(cr_best)
     #dataset,areas = preparar_datos(DIC_DATOS,AREAS)
 
@@ -203,11 +203,22 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    #muestras = generar_muestras_pacientes(n_seeds=1, n_horas=24)
+    muestras = generar_muestras_pacientes(n_seeds=500, n_horas=24*7)
 
-    #res = realizar_simulacion_completa(dic_salas,muestras)
-    #print(obtener_intervalo_confianza(res, alpha=0.95))
-    #print(np.mean(res))
+    res = realizar_simulacion_completa(dic_salas,muestras)
+    print(obtener_intervalo_confianza(res, alpha=0.90))
+    print(np.mean(res))
+
+    #promedios = list()
+    #semanas = list(range(1,7+1))
+    #for semana in semanas:
+    #    print(semana)
+    #    muestras = generar_muestras_pacientes(n_seeds=3, n_horas=24*7*semana)
+    #    res = realizar_simulacion_completa(dic_salas,muestras)
+    #    promedios.append(np.mean(res))
+
+    
+    #import plotly.express as px
 
     promedios = list()
     semanas = list(range(1,24+1))
@@ -224,6 +235,3 @@ if __name__ == "__main__":
     df = pd.DataFrame(data)
     fig = px.bar(df, x="semanas", y="lead_time_esperado")
     fig.show()
-
-    #[777.3231766250174, 1572.6269154594283, 2422.160861778435, 3176.8745687172727, 3961.6717798992777, 4758.970790620248, 5519.185172056545, 6229.888236357574, 7007.789777137648, 7829.286910137547, 8674.386951119872, 9317.71532880481, 10163.050094306693, 11014.493457566525, 11849.484130517008, 12597.009771776904, 13314.25481039417, 14117.782146866855, 14827.247877430382, 15612.39838474231, 16446.98949980213, 17213.40098874758, 18019.398921906068, 18895.61952848364]
-    #[320.1094830063347, 594.1170463447913, 871.5686865627844, 1138.5708633660042, 1410.2830757045645, 1694.1490542475976, 1948.3296257772543, 2223.397184903849, 2475.3155832319335, 2737.9526652719164, 3041.588787886943, 3323.9972302524807, 3542.504377287449, 3866.4805522373954, 4118.98103256778, 4393.444319866685, 4665.391742882547, 4919.44890178833, 5213.906610696198, 5463.173678576058, 5767.331945243622, 6040.630199092027, 6232.844529524516, 6593.094694568275]
