@@ -11,6 +11,7 @@ from colorama import init
 from termcolor import colored
 import time
 from scipy import stats
+import pandas as pd
 
 def timer(funcion):
     """
@@ -44,6 +45,10 @@ class GeneradoraPacientes:
         self.distribucion_llegadas = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
         self.distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones_varias.json')
 
+        self.df_estadias_opr = pd.read_csv(os.path.join('Datos', 'Prob_estadias_OPR.csv'))
+
+
+
     def cargar_distribucion(self, prob, nombre_archivo):
        
         direccion = os.path.join('Datos', nombre_archivo) 
@@ -51,16 +56,20 @@ class GeneradoraPacientes:
             data = json.load(file)
 
         if prob == 'llegadas':
-            self.distribucion = dict(data['tiempo_entre_llegadas']['lognorm'])
+            self.distribucion = dict(data['tiempo_entre_llegadas']['expon'])
         elif prob == 'estadias':
             self.distribucion = dict(data) 
 
-        elif prob == 'transiciones':
-            pass
         else:
             raise Exception('Hubo un problema con el cargo de datos de las distribuciones')  
         
         return self.distribucion
+
+    def generar_estadia_opr(self):
+
+        estadia_opr = random.choices(self.df_estadias_opr['estadia'], weights=self.df_estadias_opr['prob'], k=1)
+        estadia_opr = estadia_opr[0]
+        return estadia_opr
 
     def generar_ruta(self, nombre_archivo_rutas):
         '''
@@ -98,7 +107,17 @@ class GeneradoraPacientes:
 
         np.random.seed(self.seed)
         
-        if distribucion == 'beta':
+        if distribucion == 'expon':
+            location = params['loc']
+            scale = params['scale']
+
+            iterar = True
+            while iterar:
+                valor_aleatorio = stats.expon.rvs(loc=location, scale=scale)
+                if valor_aleatorio >= 0:
+                    iterar = False
+
+        elif distribucion == 'beta':
             param_a = params['a']
             param_b = params['b']
             location = params['loc']
@@ -129,22 +148,18 @@ class GeneradoraPacientes:
     def asignar_estadias(self, ruta):
         estadias = []
         
-        distibucion_opr = list(self.distribuciones_estadias['estadias_opr'].keys())[0]
-        distibucion_urg = list(self.distribuciones_estadias['estadias_urg'].keys())[0]
-        distibucion_div = list(self.distribuciones_estadias['estadias_div'].keys())[0]
-        
-        params_opr = self.distribuciones_estadias['estadias_opr'][distibucion_opr]
-        params_urg = self.distribuciones_estadias['estadias_urg'][distibucion_urg]
-        params_div = self.distribuciones_estadias['estadias_div'][distibucion_div] 
-        
         for parada in ruta:
             if "OPR" in parada:
-                estadia = self.generar_valores_aleatorios(distribucion=distibucion_opr, params= params_opr)
+                estadia = self.generar_estadia_opr()
     
             elif "URG" in parada:
-                estadia = self.generar_valores_aleatorios(distribucion=distibucion_urg, params= params_urg)           
+                distibucion_urg = list(self.distribuciones_estadias['estadias_urg'].keys())[0]
+                params_urg = self.distribuciones_estadias['estadias_urg'][distibucion_urg]
+                estadia = self.generar_valores_aleatorios(distribucion=distibucion_urg, params=params_urg)           
            
             elif "DIV" in parada:
+                distibucion_div = list(self.distribuciones_estadias['estadias_div'].keys())[0]
+                params_div = self.distribuciones_estadias['estadias_div'][distibucion_div]
                 estadia = self.generar_valores_aleatorios(distribucion=distibucion_div, params= params_div)
             
             elif parada == 'Outside':               # Corroborar esto con el resto
@@ -152,13 +167,15 @@ class GeneradoraPacientes:
            
             elif parada == 'End':
                 estadia = 0
-            
+
             else:
                 print(parada)
                 raise Exception('Distribución no identificada para las estadias')
 
             estadias.append(estadia)
 
+        
+ 
         return estadias
 
     def generar_id(self):
@@ -173,7 +190,6 @@ class GeneradoraPacientes:
 
         location = self.distribucion_llegadas['loc']         # -0.1631080499945431
         scale = self.distribucion_llegadas["scale"]          # 3.01277091110916
-        shape = self.distribucion_llegadas["s"]              # 1.1325392177517544
        
         n_pacientes = 0
         timestamp = timestamp_inicio
@@ -183,7 +199,7 @@ class GeneradoraPacientes:
             
             iterar = True
             while iterar:
-                tiempo_entre_llegadas = stats.lognorm.rvs(s = shape, loc=location, scale=scale)  
+                tiempo_entre_llegadas = stats.expon.rvs(loc=location, scale=scale)  
                 if tiempo_entre_llegadas >= 0 and tiempo_entre_llegadas <= 24:
                     iterar = False
 

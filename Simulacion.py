@@ -203,11 +203,11 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    muestras = generar_muestras_pacientes(n_seeds=500, n_horas=24*7)
+    #muestras = generar_muestras_pacientes(n_seeds=500, n_horas=24*7)
 
-    res = realizar_simulacion_completa(dic_salas,muestras)
-    print(obtener_intervalo_confianza(res, alpha=0.90))
-    print(np.mean(res))
+    #res = realizar_simulacion_completa(dic_salas,muestras)
+    #print(obtener_intervalo_confianza(res, alpha=0.90))
+    #print(np.mean(res))
 
     #promedios = list()
     #semanas = list(range(1,7+1))
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     #import plotly.express as px
 
     promedios = list()
-    semanas = list(range(1,24+1))
+    semanas = list(range(1,4+1))
     for semana in semanas:
         print(semana)
         muestras = generar_muestras_pacientes(n_seeds=60, n_horas=24*7*semana)
