@@ -195,7 +195,7 @@ if __name__ == "__main__":
                             # Max presupuesto --> [5, 8, 15, 6, 15, 10, 13, 18, 1]
     print(calcular_funcion_aptitud(cromosoma = cr_best))
     dic_salas = vector_cromosoma(cr_best)
-    dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+    #dataset,areas = preparar_datos(DIC_DATOS,AREAS)
 
     #info_pacientes = dataset["info_pacientes"]
     #llegadas = info_pacientes["Entrada"].sort_values()
@@ -203,6 +203,17 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    muestras = generar_muestras_pacientes(n_seeds=100, n_horas=24*30)
-    res = realizar_simulacion_completa(dic_salas,muestras)
-    print(obtener_intervalo_confianza(res, alpha=0.95))
+    #muestras = generar_muestras_pacientes(n_seeds=1, n_horas=24)
+
+    #res = realizar_simulacion_completa(dic_salas,muestras)
+    #print(obtener_intervalo_confianza(res, alpha=0.95))
+    #print(np.mean(res))
+
+    promedios = list()
+    semanas = list(range(1,24+1))
+    print(semanas)
+    for semana in semanas:
+        muestras = generar_muestras_pacientes(n_seeds=2, n_horas=24*7*semana)
+        res = realizar_simulacion_completa(dic_salas,muestras)
+        promedios.append(np.mean(res))
+    print(promedios)
