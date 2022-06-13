@@ -190,10 +190,10 @@ def calcular_funcion_aptitud(cromosoma = [3,5,12,5,12,8,10,14,0], alpha = 0.01, 
 if __name__ == "__main__":
     cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14, 0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
     cr_p = [5, 8, 14, 6, 12, 9, 12, 15, 1]
-    cr_best = [5, 8, 15, 6, 15, 10, 13, 18, 1]
+    cr_best = [3, 7, 13, 6, 15, 10, 10, 14, 0]
+
                             # Sin presupuesto --> [3, 5, 12, 5, 12, 8, 10, 14, 0]
                             # Max presupuesto --> [5, 8, 15, 6, 15, 10, 13, 18, 1]
-    print(calcular_funcion_aptitud(cromosoma = cr_best))
     dic_salas = vector_cromosoma(cr_best)
     #dataset,areas = preparar_datos(DIC_DATOS,AREAS)
 
@@ -203,17 +203,24 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    #muestras = generar_muestras_pacientes(n_seeds=1, n_horas=24)
+    muestras = generar_muestras_pacientes(n_seeds=500, n_horas=24*7)
 
-    #res = realizar_simulacion_completa(dic_salas,muestras)
-    #print(obtener_intervalo_confianza(res, alpha=0.95))
-    #print(np.mean(res))
+    res = realizar_simulacion_completa(dic_salas,muestras)
+    print(obtener_intervalo_confianza(res, alpha=0.90))
+    print(np.mean(res))
 
-    promedios = list()
-    semanas = list(range(1,24+1))
-    print(semanas)
-    for semana in semanas:
-        muestras = generar_muestras_pacientes(n_seeds=2, n_horas=24*7*semana)
-        res = realizar_simulacion_completa(dic_salas,muestras)
-        promedios.append(np.mean(res))
-    print(promedios)
+    #promedios = list()
+    #semanas = list(range(1,7+1))
+    #for semana in semanas:
+    #    print(semana)
+    #    muestras = generar_muestras_pacientes(n_seeds=3, n_horas=24*7*semana)
+    #    res = realizar_simulacion_completa(dic_salas,muestras)
+    #    promedios.append(np.mean(res))
+
+    
+    #import plotly.express as px
+
+    #data = {'semanas': semanas, 'lead_time_esperado': promedios}
+    #df = pd.DataFrame(data)
+    #fig = px.bar(df, x="semanas", y="lead_time_esperado")
+    #fig.show()
