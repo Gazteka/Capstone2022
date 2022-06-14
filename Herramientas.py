@@ -243,4 +243,4 @@ def cargar_rutas_aleatorias(archivo_rutas_json):
 if __name__ == "__main__":
     #DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
     #print(cargar_distribuciones({}))
-    print(crear_rutas_aleatorias('rutas.json'))
+    print(cargar_rutas_aleatorias('rutas.json'))
