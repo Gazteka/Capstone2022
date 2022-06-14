@@ -28,24 +28,55 @@ def timer(funcion):
         return resultado
     return inner
 
- 
+class SuperGeneradora:
+    def __init__(self, seeds=18):
+        self.seeds = seeds
+        self.distribucion_llegadas = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
+        self.distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones_varias.json')
 
-dataset,areas = preparar_datos(DIC_DATOS,AREAS)
+        self.df_estadias_opr = pd.read_csv(os.path.join('Datos', 'Prob_estadias_OPR.csv'))
+
+        self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=100000)
+
+    def cargar_distribucion(self, prob, nombre_archivo):
+       
+        direccion = os.path.join('Datos', nombre_archivo) 
+        with open(direccion) as file:
+            data = json.load(file)
+
+        if prob == 'llegadas':
+            self.distribucion = dict(data['tiempo_entre_llegadas']['expon'])
+        elif prob == 'estadias':
+            self.distribucion = dict(data) 
+
+        else:
+            raise Exception('Hubo un problema con el cargo de datos de las distribuciones')  
+        
+        return self.distribucion
+
+    def generar_pacientes_generadoras(self, horas, nombre_archivo_rutas):
+        pacientes_generadoras = list()
+        for seed in range(1, self.seeds+1):
+            gen = GeneradoraPacientes(seed, self.distribucion_llegadas, self.distribuciones_estadias, self.df_estadias_opr, self.rutas_aleatorias)
+            pacientes_gen = gen.generar_pacientes(horas=horas, nombre_archivo_rutas=nombre_archivo_rutas)
+            pacientes_generadoras.append(pacientes_gen)
+        return pacientes_generadoras
 
 class GeneradoraPacientes:
     '''
     Esta clase genera una lista de instancias de la clase pacientes con sus atributos respectivos 
     '''
-    def __init__(self, seed=18):
+    def __init__(self, seed, dist_llegadas, dist_estadias, df_estadias_opr, rutas_aleatorias):
         self.seed = seed
-        #self.distribución = None
         self.pacientes = []
         self.ids = []
-        self.tipo_pacientes = int() # Se rellena este valor en generar_ruta()
-        self.distribucion_llegadas = self.cargar_distribucion(prob='llegadas', nombre_archivo='distribuciones_varias.json')
-        self.distribuciones_estadias = self.cargar_distribucion(prob='estadias', nombre_archivo='distribuciones_varias.json')
 
-        self.df_estadias_opr = pd.read_csv(os.path.join('Datos', 'Prob_estadias_OPR.csv'))
+        self.distribucion_llegadas = dist_llegadas
+        self.distribuciones_estadias = dist_estadias
+
+        self.df_estadias_opr = df_estadias_opr
+
+        self.rutas_aleatorias = rutas_aleatorias
 
 
 
@@ -70,7 +101,7 @@ class GeneradoraPacientes:
         estadia_opr = random.choices(self.df_estadias_opr['estadia'], weights=self.df_estadias_opr['prob'], k=1)
         estadia_opr = estadia_opr[0]
         return estadia_opr
-
+    
     def generar_ruta(self, nombre_archivo_rutas):
         '''
         Retorna una ruta aleatoria
@@ -78,26 +109,11 @@ class GeneradoraPacientes:
         El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde al total de tipos de pacientes
         '''
 
-        direccion = os.path.join('Datos', nombre_archivo_rutas) 
-        with open(direccion) as file:
-            rutas_dict = json.load(file)
-        
-        id_rutas = list(rutas_dict.keys())
-        rutas_prob = list(rutas_dict.values())
+        if len(self.rutas_aleatorias) == 0:
+            print('Necesito más rutas, generando más...')
+            self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=1000)
 
-        self.tipo_pacientes = len(id_rutas)
-
-        posibles_rutas = list()
-        prob_relativas = list()
-
-        for ruta_prob_dict in rutas_prob:
-            ruta_prob = list(ruta_prob_dict.values())
-            posibles_rutas.append(ruta_prob[0])
-            prob_relativas.append(ruta_prob[1])
-
-        ruta_para_asignar = random.choices(posibles_rutas, weights=prob_relativas, k=1)
-        ruta_para_asignar = ruta_para_asignar[0]
-        return ruta_para_asignar
+        return self.rutas_aleatorias.pop(0)
 
     def generar_valores_aleatorios(self, distribucion, params):
         '''
@@ -105,40 +121,10 @@ class GeneradoraPacientes:
         Retorna el valor aleatorio correspondiente
         '''
 
-        np.random.seed(self.seed)
+        #np.random.seed(self.seed)
         
         if distribucion == 'expon':
-            location = params['loc']
-            scale = params['scale']
-
-            iterar = True
-            while iterar:
-                valor_aleatorio = stats.expon.rvs(loc=location, scale=scale)
-                if valor_aleatorio >= 0:
-                    iterar = False
-
-        elif distribucion == 'beta':
-            param_a = params['a']
-            param_b = params['b']
-            location = params['loc']
-            scale = params['scale']
-
-            iterar = True
-            while iterar:
-                valor_aleatorio = stats.beta.rvs(a=param_a, b=param_b, loc=location, scale=scale)
-                if valor_aleatorio >= 0:
-                    iterar = False
-
-        elif distribucion == 'lognorm':
-            shape = params['s']
-            location = params['loc']
-            scale = params['scale']
-            
-            iterar = True
-            while iterar:
-                valor_aleatorio = stats.lognorm.rvs(s = shape, loc=location, scale=scale)
-                if valor_aleatorio >= 0:
-                    iterar = False
+            valor_aleatorio = stats.expon.rvs(loc=params['loc'], scale=params['scale']) # No puede tomar valores negativos por construcción
 
         else:
             raise Exception('Distribución no identificada')
@@ -184,9 +170,9 @@ class GeneradoraPacientes:
         
         self.ids.append(id)
         return id
-    
+    #@timer
     def generar_pacientes(self, horas, nombre_archivo_rutas, timestamp_inicio=datetime.datetime(2021,1,1,0,0,0,0)):
-        np.random.seed(self.seed)
+        #np.random.seed(self.seed)
 
         location = self.distribucion_llegadas['loc']         # -0.1631080499945431
         scale = self.distribucion_llegadas["scale"]          # 3.01277091110916
@@ -465,7 +451,7 @@ class Hospital:
         else:
             # print(next_evento)
             return 
-    # @timer
+    #@timer
     def simular(self):
         while len(self.eventos) > 0:
             self.siguiente_evento()
@@ -486,5 +472,8 @@ class Hospital:
         self.datos[self.hora] = info_actual
 
 if __name__ == "__main__":
-    generadora = GeneradoraPacientes()
-    pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')
+    super_generadora = SuperGeneradora(seeds=30)
+    pacientes_seeds = super_generadora.generar_pacientes_generadoras(horas=24*7,nombre_archivo_rutas='rutas.json')
+    #print(pacientes_seeds)
+    #generadora = GeneradoraPacientes()
+    #pacientes = generadora.generar_pacientes(horas=200, nombre_archivo_rutas='rutas.json')

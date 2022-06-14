@@ -219,8 +219,28 @@ def obtener_lead_time_medio(pacientes):
     
     return np.mean(tiempos)
 
+def crear_rutas_aleatorias(archivo_rutas_json, cantidad = 1000000):
+    direccion = os.path.join('Datos', archivo_rutas_json) 
+    with open(direccion) as file:
+        rutas_dict = json.load(file)
+        
+    id_rutas = list(rutas_dict.keys())
+    rutas_prob = list(rutas_dict.values())
 
+    tipo_pacientes = len(id_rutas)
+
+    posibles_rutas = list()
+    prob_relativas = list()
+
+    for ruta_prob_dict in rutas_prob:
+        ruta_prob = list(ruta_prob_dict.values())
+        posibles_rutas.append(ruta_prob[0])
+        prob_relativas.append(ruta_prob[1])
+
+    ruta_para_asignar = random.choices(posibles_rutas, weights=prob_relativas, k=cantidad)
+    return ruta_para_asignar
     
 if __name__ == "__main__":
-    DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
-    print(cargar_distribuciones({}))
+    #DIC_DATOS,AREA = preparar_datos(DIC_DATOS,AREAS)
+    #print(cargar_distribuciones({}))
+    print(crear_rutas_aleatorias('rutas.json'))
