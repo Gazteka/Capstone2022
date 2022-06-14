@@ -1,5 +1,5 @@
 from Herramientas import  * 
-from Clases import Sala,Paciente,Hospital,GeneradoraPacientes,timer
+from Clases import Sala,Paciente,Hospital,GeneradoraPacientes, SuperGeneradora,timer
 
 def preparar_pacientes(datos_pacientes):
     """Crea las clases de pacientes y las devuelve en formato clases
@@ -127,16 +127,17 @@ def vector_cromosoma(cromosoma):
 
     return diccionario_salas
         
-
+@timer
 def generar_muestras_pacientes(n_seeds = 30,n_horas = 24*30):
     muestras = {}
+    super_generadora = SuperGeneradora(seeds=n_seeds)
+    pacientes_seeds = super_generadora.generar_pacientes_generadoras(horas=n_horas, nombre_archivo_rutas='rutas.json')
     for i in range(n_seeds):
-        generadora = GeneradoraPacientes(seed = i)
-        pacientes = generadora.generar_pacientes(horas=n_horas, nombre_archivo_rutas='rutas.json')
+        pacientes = pacientes_seeds.pop(0)
         pacientes = preparar_pacientes_generadora(pacientes)
         muestras[i] = pacientes
     return muestras
-# @timer
+@timer
 def realizar_simulacion_completa(dic_salas,muestras):
     resultados = []
     for seed in muestras:
@@ -203,14 +204,14 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    muestras = generar_muestras_pacientes(n_seeds=500, n_horas=24*7*4)
+    muestras = generar_muestras_pacientes(n_seeds=5, n_horas=24*7)
 
     res = realizar_simulacion_completa(dic_salas,muestras)
-    print(obtener_intervalo_confianza(res, alpha=0.90))
-    print(res)
-    print(np.mean(res))
-    print(np.max(res))
-    print(np.min(res))
+    #print(obtener_intervalo_confianza(res, alpha=0.90))
+    #print(res)
+    #print(np.mean(res))
+    #print(np.max(res))
+    #print(np.min(res))
 
     #promedios = list()
     #semanas = list(range(1,7+1))
