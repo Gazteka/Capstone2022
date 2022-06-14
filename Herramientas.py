@@ -200,12 +200,25 @@ def preparar_pacientes_generadora(pacientes):
 
 def obtener_lead_time_medio(pacientes):
     tiempos = []
+    entradas = []
+    salidas = []
+    entradas = [pacientes[pat].datos["llegada"] for pat in pacientes]
+    entradas = sorted(entradas)
+    ult_entrada = entradas[-1]
     for pat in pacientes :
         datos = pacientes[pat].datos
         diff = datos["salida"]-datos["llegada"]
+        entradas.append(datos["llegada"])
+        salidas.append(datos["salida"])
         diff = diff/datetime.timedelta(hours = 1)
-        tiempos.append(diff)
+        diff_w_last = (datos["salida"] -ult_entrada)/datetime.timedelta(hours = 1)
+        if diff_w_last > 0:
+            continue
+        else:
+            tiempos.append(diff)
+    
     return np.mean(tiempos)
+
 
     
 if __name__ == "__main__":

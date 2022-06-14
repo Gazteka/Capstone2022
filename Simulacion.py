@@ -203,11 +203,14 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    muestras = generar_muestras_pacientes(n_seeds=300, n_horas=24*7)
+    muestras = generar_muestras_pacientes(n_seeds=500, n_horas=24*7*4)
 
     res = realizar_simulacion_completa(dic_salas,muestras)
     print(obtener_intervalo_confianza(res, alpha=0.90))
+    print(res)
     print(np.mean(res))
+    print(np.max(res))
+    print(np.min(res))
 
     #promedios = list()
     #semanas = list(range(1,7+1))
