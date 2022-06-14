@@ -36,7 +36,7 @@ class SuperGeneradora:
 
         self.df_estadias_opr = pd.read_csv(os.path.join('Datos', 'Prob_estadias_OPR.csv'))
 
-        self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=100000)
+        self.posibles_rutas, self.prob_rutas = cargar_rutas_aleatorias('rutas.json')
 
     def cargar_distribucion(self, prob, nombre_archivo):
        
@@ -57,7 +57,7 @@ class SuperGeneradora:
     def generar_pacientes_generadoras(self, horas, nombre_archivo_rutas):
         pacientes_generadoras = list()
         for seed in range(1, self.seeds+1):
-            gen = GeneradoraPacientes(seed, self.distribucion_llegadas, self.distribuciones_estadias, self.df_estadias_opr, self.rutas_aleatorias)
+            gen = GeneradoraPacientes(seed, self.distribucion_llegadas, self.distribuciones_estadias, self.df_estadias_opr, self.posibles_rutas, self.prob_rutas)
             pacientes_gen = gen.generar_pacientes(horas=horas, nombre_archivo_rutas=nombre_archivo_rutas)
             pacientes_generadoras.append(pacientes_gen)
         return pacientes_generadoras
@@ -66,7 +66,7 @@ class GeneradoraPacientes:
     '''
     Esta clase genera una lista de instancias de la clase pacientes con sus atributos respectivos 
     '''
-    def __init__(self, seed, dist_llegadas, dist_estadias, df_estadias_opr, rutas_aleatorias):
+    def __init__(self, seed, dist_llegadas, dist_estadias, df_estadias_opr, posibles_rutas, prob_rutas):
         self.seed = seed
         self.pacientes = []
         self.ids = []
@@ -76,7 +76,8 @@ class GeneradoraPacientes:
 
         self.df_estadias_opr = df_estadias_opr
 
-        self.rutas_aleatorias = rutas_aleatorias
+        self.posibles_rutas = posibles_rutas
+        self.prob_rutas = prob_rutas
 
 
 
@@ -109,11 +110,7 @@ class GeneradoraPacientes:
         El largo de la lista corresponde al máximo de rutas para "escoger", lo que corresponde al total de tipos de pacientes
         '''
 
-        if len(self.rutas_aleatorias) == 0:
-            print('Necesito más rutas, generando más...')
-            self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=1000)
-
-        return self.rutas_aleatorias.pop(0)
+        return random.choices(self.posibles_rutas, weights=self.prob_rutas, k=1)[0]    #self.rutas_aleatorias.pop(0)
 
     def generar_valores_aleatorios(self, distribucion, params):
         '''

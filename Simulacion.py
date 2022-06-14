@@ -206,9 +206,9 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    #muestras = generar_muestras_pacientes(n_seeds=300, n_horas=24*7*4)
+    muestras = generar_muestras_pacientes(n_seeds=30, n_horas=24*7*4)
 
-    #res = realizar_simulacion_completa(dic_salas,muestras)
+    res = realizar_simulacion_completa(dic_salas,muestras)
     #print(obtener_intervalo_confianza(res, alpha=0.90))
     #print(res)
     #print(np.mean(res))
@@ -216,20 +216,20 @@ if __name__ == "__main__":
     #print(np.min(res))
 
     
-    import plotly.express as px
+    #import plotly.express as px
 
-    promedios = list()
-    semanas = list(range(1,8+1))
-    for semana in semanas:
-        print(semana)
-        muestras = generar_muestras_pacientes(n_seeds=1000, n_horas=24*7*semana)
-        res = realizar_simulacion_completa(dic_salas,muestras)
-        promedios.append(np.mean(res))
-    print(promedios)
+    #promedios = list()
+    #semanas = list(range(1,5+1))
+    #for semana in semanas:
+    #    print(semana)
+    #    muestras = generar_muestras_pacientes(n_seeds=1000, n_horas=24*7*semana)
+    #    res = realizar_simulacion_completa(dic_salas,muestras)
+    #    promedios.append(np.mean(res))
+    #print(promedios)
 
-    import plotly.express as px
+    #import plotly.express as px
 
-    data = {'semanas': semanas, 'lead_time_esperado': promedios}
-    df = pd.DataFrame(data)
-    fig = px.bar(df, x="semanas", y="lead_time_esperado")
-    fig.show()
+    #data = {'semanas': semanas, 'lead_time_esperado': promedios}
+    #df = pd.DataFrame(data)
+    #fig = px.bar(df, x="semanas", y="lead_time_esperado")
+    #fig.show()
