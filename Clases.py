@@ -36,7 +36,7 @@ class SuperGeneradora:
 
         self.df_estadias_opr = pd.read_csv(os.path.join('Datos', 'Prob_estadias_OPR.csv'))
 
-        self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json')
+        self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=100000)
 
     def cargar_distribucion(self, prob, nombre_archivo):
        
@@ -110,7 +110,8 @@ class GeneradoraPacientes:
         '''
 
         if len(self.rutas_aleatorias) == 0:
-            self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=10000)
+            print('Necesito más rutas, generando más...')
+            self.rutas_aleatorias = crear_rutas_aleatorias('rutas.json', cantidad=1000)
 
         return self.rutas_aleatorias.pop(0)
 
@@ -120,7 +121,7 @@ class GeneradoraPacientes:
         Retorna el valor aleatorio correspondiente
         '''
 
-        np.random.seed(self.seed)
+        #np.random.seed(self.seed)
         
         if distribucion == 'expon':
             valor_aleatorio = stats.expon.rvs(loc=params['loc'], scale=params['scale']) # No puede tomar valores negativos por construcción
@@ -171,7 +172,7 @@ class GeneradoraPacientes:
         return id
     #@timer
     def generar_pacientes(self, horas, nombre_archivo_rutas, timestamp_inicio=datetime.datetime(2021,1,1,0,0,0,0)):
-        np.random.seed(self.seed)
+        #np.random.seed(self.seed)
 
         location = self.distribucion_llegadas['loc']         # -0.1631080499945431
         scale = self.distribucion_llegadas["scale"]          # 3.01277091110916
@@ -198,10 +199,10 @@ class GeneradoraPacientes:
             paciente = Paciente(id= id_paciente, ruta=ruta_paciente, hora_llegada=timestamp, estadias=estadias_paciente)
             self.pacientes.append(paciente)
              
-            print(colored(f'Paciente ID: {paciente.id}','blue')) 
-            print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
-            print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
-            print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
+            #print(colored(f'Paciente ID: {paciente.id}','blue')) 
+            #print(f'Llegada: {paciente.hora_llegada} | Tiempo entre llegadas: {round(tiempo_entre_llegadas,2)} horas')
+            #print(colored(f'Ruta Paciente: {paciente.ruta}', 'yellow'))
+            #print(colored(f'Estadías Paciente: {paciente.estadias}', 'red'), '\n')
         
         return np.array(self.pacientes)
 
@@ -471,7 +472,7 @@ class Hospital:
         self.datos[self.hora] = info_actual
 
 if __name__ == "__main__":
-    super_generadora = SuperGeneradora(seed=30)
+    super_generadora = SuperGeneradora(seeds=30)
     pacientes_seeds = super_generadora.generar_pacientes_generadoras(horas=24*7,nombre_archivo_rutas='rutas.json')
     #print(pacientes_seeds)
     #generadora = GeneradoraPacientes()
