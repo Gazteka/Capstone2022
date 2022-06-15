@@ -172,8 +172,8 @@ class GeneradoraPacientes:
         #np.random.seed(self.seed)
 
         location = self.distribucion_llegadas['loc']         # -0.1631080499945431
-        scale = self.distribucion_llegadas["scale"]          # 3.01277091110916
-       
+        #scale = self.distribucion_llegadas["scale"]          # 3.01277091110916
+        scale = 3.05
         n_pacientes = 0
         timestamp = timestamp_inicio
         timestamp_termino = timestamp_inicio + datetime.timedelta(hours=horas)

@@ -106,7 +106,7 @@ class AlgoritmoGenetico:
     
 
     @timer
-    def iteracion_algoritmo(self, n = 100):
+    def iteracion_algoritmo(self, n = 30):
         n = n#num iteraciones total
         # n = self.n_iter
         with open(os.path.join('Resultados', 'resultados_algoritmo.csv'),"a") as file:
@@ -114,7 +114,7 @@ class AlgoritmoGenetico:
             fo_evaluadas = list()
             self.lista_tabu = {}
             dic_resultados = {}
-            muestras = generar_muestras_pacientes(n_seeds = 30, n_horas=24*7*4*3)
+            muestras = generar_muestras_pacientes(n_seeds = 30, n_horas=24*7*2)
             while iter_realizadas < n: 
                 if iter_realizadas == 0:
                     pob_actual = self.generar_poblacion()
