@@ -7,6 +7,7 @@ import copy
 random.seed(333)
 import json
 import os
+import copy
 
 class AlgoritmoGenetico: 
     def __init__(self, cromosoma_inicial,n_iter = 5):
@@ -23,7 +24,7 @@ class AlgoritmoGenetico:
         dic_genes[7] = (14,18)
         dic_genes[8] = (0, 1)
         self.dic_genes = dic_genes
-        self.muestras_pacientes = generar_muestras_pacientes()
+        #self.muestras_pacientes = generar_muestras_pacientes()
 
     def generar_poblacion(self):  #Genera la poblacion inicial, retorna lista de cromosomas 
         tamaño_poblacion = 15 
@@ -105,7 +106,7 @@ class AlgoritmoGenetico:
     
 
     @timer
-    def iteracion_algoritmo(self, n = 10):
+    def iteracion_algoritmo(self, n = 100):
         n = n#num iteraciones total
         # n = self.n_iter
         with open(os.path.join('Resultados', 'resultados_algoritmo.csv'),"a") as file:
@@ -113,19 +114,21 @@ class AlgoritmoGenetico:
             fo_evaluadas = list()
             self.lista_tabu = {}
             dic_resultados = {}
+            muestras = generar_muestras_pacientes(n_seeds = 30, n_horas=24*7*4*3)
             while iter_realizadas < n: 
                 if iter_realizadas == 0:
                     pob_actual = self.generar_poblacion()
+                #muestras = generar_muestras_pacientes(n_seeds = 200, n_horas=24*7*4)
                 for cromosoma in pob_actual:
                     dic_salas = vector_cromosoma(cromosoma)
-                    muestras = generar_muestras_pacientes(n_seeds = 1, n_horas=24*7*4)
+                    #muestras = generar_muestras_pacientes(n_seeds = 1, n_horas=24*7*4)
                     if str(cromosoma) in self.lista_tabu.keys():
                         lt_crom = self.lista_tabu[str(cromosoma)]
                         # print(cromosoma,"in lista tabu")
                         
                     else:
 
-                        lt_crom = realizar_simulacion_completa(dic_salas,muestras)
+                        lt_crom = realizar_simulacion_completa(dic_salas,copy.deepcopy(muestras))
                         self.lista_tabu[str(cromosoma)] = lt_crom
                     lt_i = obtener_intervalo_confianza(lt_crom)[1]# Esto despues sera el intervalo de confianza
                     fo = self.calcular_funcion_aptitud(lt_i,cromosoma = cromosoma)
