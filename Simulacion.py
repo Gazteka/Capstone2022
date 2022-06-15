@@ -192,11 +192,10 @@ def calcular_funcion_aptitud(cromosoma = [3,5,12,5,12,8,10,14,0], alpha = 0.01, 
 if __name__ == "__main__":
     cromosoma_inicial = [3, 5, 12, 5, 12, 8, 10, 14, 0] #x, y, z_1, z_2, z_4, z_5, z_6, z_7, e
     cr_p = [5, 8, 15, 6, 15, 10, 13, 18, 1]
-    cr_best = [5, 8, 15, 6, 15, 10, 13, 18, 1]
+    cr_best = [4, 8, 12, 5, 12, 8, 11, 14, 0]
                             # Sin presupuesto --> [3, 5, 12, 5, 12, 8, 10, 14, 0]
                             # Max presupuesto --> [5, 8, 15, 6, 15, 10, 13, 18, 1]
                             # Best cromosoma  --> [4, 8, 12, 5, 12, 8, 11, 14, 0]
-                            #                     [4, 7, 13, 6, 12, 8, 11, 17, 0]
     dic_salas = vector_cromosoma(cr_best)
     #dataset,areas = preparar_datos(DIC_DATOS,AREAS)
 
@@ -206,30 +205,14 @@ if __name__ == "__main__":
     #pacientes_originales = preparar_pacientes(datos_pacientes)
     #dic_salas = cargar_distribuciones(dic_salas)
 
-    muestras = generar_muestras_pacientes(n_seeds=30, n_horas=24*7*4)
+    muestras = generar_muestras_pacientes(n_seeds=100, n_horas=24*7*2*2)
 
     res = realizar_simulacion_completa(dic_salas,muestras)
-    #print(obtener_intervalo_confianza(res, alpha=0.90))
+    print(obtener_intervalo_confianza(res, alpha=0.95))
     #print(res)
     #print(np.mean(res))
     #print(np.max(res))
     #print(np.min(res))
 
     
-    #import plotly.express as px
 
-    #promedios = list()
-    #semanas = list(range(1,5+1))
-    #for semana in semanas:
-    #    print(semana)
-    #    muestras = generar_muestras_pacientes(n_seeds=1000, n_horas=24*7*semana)
-    #    res = realizar_simulacion_completa(dic_salas,muestras)
-    #    promedios.append(np.mean(res))
-    #print(promedios)
-
-    #import plotly.express as px
-
-    #data = {'semanas': semanas, 'lead_time_esperado': promedios}
-    #df = pd.DataFrame(data)
-    #fig = px.bar(df, x="semanas", y="lead_time_esperado")
-    #fig.show()

@@ -6,6 +6,7 @@ import time
 import copy
 random.seed(333)
 import json
+import os
 
 class AlgoritmoGenetico: 
     def __init__(self, cromosoma_inicial,n_iter = 5):
@@ -104,10 +105,10 @@ class AlgoritmoGenetico:
     
 
     @timer
-    def iteracion_algoritmo(self, n = 50):
+    def iteracion_algoritmo(self, n = 10):
         n = n#num iteraciones total
         # n = self.n_iter
-        with open("resultados_algoritmo.csv","a") as file:
+        with open(os.path.join('Resultados', 'resultados_algoritmo.csv'),"a") as file:
             iter_realizadas = 0
             fo_evaluadas = list()
             self.lista_tabu = {}
@@ -117,7 +118,7 @@ class AlgoritmoGenetico:
                     pob_actual = self.generar_poblacion()
                 for cromosoma in pob_actual:
                     dic_salas = vector_cromosoma(cromosoma)
-                    muestras = generar_muestras_pacientes()
+                    muestras = generar_muestras_pacientes(n_seeds = 1, n_horas=24*7*4)
                     if str(cromosoma) in self.lista_tabu.keys():
                         lt_crom = self.lista_tabu[str(cromosoma)]
                         # print(cromosoma,"in lista tabu")
