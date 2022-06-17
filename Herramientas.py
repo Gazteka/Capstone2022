@@ -217,7 +217,16 @@ def obtener_lead_time_medio(pacientes):
         else:
             tiempos.append(diff)
     
-    return np.mean(tiempos)
+    leadtime_medio = np.mean(tiempos)
+    limite = np.percentile(tiempos, 95)   # alpha % peores casos
+    peores_casos = np.array([])
+    for tiempo in tiempos: 
+        if tiempo >= limite:
+            peores_casos = np.append(peores_casos, tiempo)
+
+    leadtime_peores_casos = np.mean(peores_casos)
+
+    return leadtime_medio, leadtime_peores_casos 
 
 def cargar_rutas_aleatorias(archivo_rutas_json):
     direccion = os.path.join('Datos', archivo_rutas_json) 

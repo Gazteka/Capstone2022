@@ -1,5 +1,7 @@
+from pyrsistent import l
 from Herramientas import  * 
 from Clases import Sala,Paciente,Hospital,GeneradoraPacientes, SuperGeneradora,timer
+import numpy as np
 
 def preparar_pacientes(datos_pacientes):
     """Crea las clases de pacientes y las devuelve en formato clases
@@ -140,7 +142,8 @@ def generar_muestras_pacientes(n_seeds = 30,n_horas = 24*30):
 
 @timer
 def realizar_simulacion_completa(dic_salas,muestras):
-    resultados = []
+    leadtimes_promedios = np.array([])
+    leadtimes_peores = np.array([])
     for seed in muestras:
         hospital = Hospital(dic_salas)
         hospital.recibir_pacientes(muestras[seed])
@@ -148,10 +151,18 @@ def realizar_simulacion_completa(dic_salas,muestras):
 
         p = hospital.pacientes
 
+        lead_time_promedio,  leadtime_peor = obtener_lead_time_medio(p)
+        leadtimes_promedios = np.append(leadtimes_promedios, lead_time_promedio)
+        leadtimes_peores = np.append(leadtimes_peores, leadtime_peor)
+    return leadtimes_promedios, leadtimes_peores
 
-        lead_time_promedio = obtener_lead_time_medio(p)
-        resultados.append(lead_time_promedio)
-    return resultados
+def obtener_leadtime_peores_casos(resultados, alpha=0.05):
+    limite = np.percentile(resultados, 100-(alpha*100))   # alpha % peores casos
+    peores_casos = np.array([])
+    for resultado in resultados: 
+        if resultado >= limite:
+            peores_casos = np.append(peores_casos, resultado)
+    return np.mean(peores_casos)
 
 
 def obtener_intervalo_confianza(resultados,alpha = 0.99):
